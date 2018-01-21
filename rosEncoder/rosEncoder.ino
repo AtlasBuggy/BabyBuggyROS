@@ -7,7 +7,7 @@
 
 Atlasbuggy robot("Quadrature-Encoder");
 Encoder encoder1(3, 4);
-//int sensorState = 0, lastState=0
+//int sensorState =s 0, lastState=0
 int ticks = 0;
 
 ros::NodeHandle nh;
