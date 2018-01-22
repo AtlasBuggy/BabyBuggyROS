@@ -1,0 +1,6 @@
+<launch>
+	<node name="camera" pkg="usb_cam" type="usb_cam_node">
+		<param name="image_width" value="1920"/>
+		<param name="image_height" value="1080"/>
+	</node>
+</launch>
