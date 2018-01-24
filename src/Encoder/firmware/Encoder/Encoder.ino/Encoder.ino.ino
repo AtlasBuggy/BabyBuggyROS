@@ -43,7 +43,7 @@ void loop(){
   
   if (status == 2) {  // start event
     encoder1.write(0);
-    ticks++l
+    ticks++;
   }
   if (speedPublish && tick > 0) {
     encoder.publish( &str_flt );
