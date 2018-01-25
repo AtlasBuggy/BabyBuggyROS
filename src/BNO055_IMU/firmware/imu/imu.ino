@@ -22,51 +22,51 @@ void loop(){
   imu::Quaternion quat = bno.getQuat();
   message.data = quat.x();
   chatter.publish(&imu_msg);
-  nh.spinOnce();
-  delay(100);
+  //nh.spinOnce();
+  //delay(100);
 
   message.data = quat.y();
   chatter.publish(&imu_msg);
-  nh.spinOnce();
-  delay(100);
+  //nh.spinOnce();
+  //delay(100);
 
   message.data = quat.z();
   chatter.publish(&imu_msg);
-  nh.spinOnce();
-  delay(100);
+  //nh.spinOnce();
+  //delay(100);
 
   message.data = quat.w();
   chatter.publish(&imu_msg);
-  nh.spinOnce();
-  delay(100);
+  //nh.spinOnce();
+  //delay(100);
 
   //angular velocity
   imu::Vector<3> gyro = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
   message.data = gyro.x();
   chatter.publish(&imu_msg);
-  nh.spinOnce();
-  delay(100);
+  //nh.spinOnce();
+  //delay(100);
 
   message.data = gyro.y();
   chatter.publish(&imu_msg);
-  nh.spinOnce();
-  delay(100);
+  //nh.spinOnce();
+  //delay(100);
 
   message.data = gyro.z();
   chatter.publish(&imu_msg);
-  nh.spinOnce();
-  delay(100);
+  //nh.spinOnce();
+  //delay(100);
 
   //linear acceleration
   imu::Vector<3> linaccel = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
   message.data = linaccel.x();
   chatter.publish(&imu_msg);
-  nh.spinOnce();
-  delay(100);
+  //nh.spinOnce();
+  //delay(100);
   message.data = linaccel.y();
   chatter.publish(&imu_msg);
-  nh.spinOnce();
-  delay(100);
+  //nh.spinOnce();
+  //delay(100);
   message.data = linaccel.z();
   chatter.publish(&imu_msg);
   nh.spinOnce();
