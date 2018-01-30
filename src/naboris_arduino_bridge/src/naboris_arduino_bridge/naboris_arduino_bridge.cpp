@@ -30,8 +30,8 @@ long long string_to_int64(string s) {
 NaborisArduinoBridge::NaborisArduinoBridge(ros::NodeHandle* nodehandle):nh(*nodehandle)
 {
     imu_pub = nh.advertise<sensor_msgs::Imu>("BNO055", 5);
-    right_encoder_pub = nh.advertise<std_msgs::Int64>("right_encoder", 5);
-    left_encoder_pub = nh.advertise<std_msgs::Int64>("left_encoder", 5);
+    //right_encoder_pub = nh.advertise<std_msgs::Int64>("right_encoder", 5);
+    //left_encoder_pub = nh.advertise<std_msgs::Int64>("left_encoder", 5);
 
     if (!nh.getParam(NODE_NAME + "/serial_port", serial_port))
     {
