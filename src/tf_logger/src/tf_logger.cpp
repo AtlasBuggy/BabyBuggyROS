@@ -6,25 +6,26 @@
 #include <stdio.h>
 #include <math.h>
 
+tf::Quaternion q;
 tf::Transform static_trans;
 tf::Transform trans;
-tf::Quaternion q;
-static tf::TransformBroadcaster br;
 
 //transform data
-float tr_x = 0; //m
-float tr_y = 0; //m
-float dt = 0; //seconds
-float prev_t = 0; //seconds
-float prev_theta = 0; //radians
-float theta = 0; //radians
-float banked_dist = 0.0; //m
+float tr_x = 0; //m, overall motion in x plane
+float tr_y = 0; //m, overall motion in y plane
+float dt = 0; //seconds, change in time
+float prev_t = 0; //seconds, previous time 
+float prev_theta = 0; //radians, keeps track of previous angle
+float theta = 0; //radians, calculates current angle
+float banked_dist = 0.0; //m, banks distance
 
 //distance from imu to laser
-const float imu_laser_x = -0.1016; //m
-const float imu_laser_y = 0.0762; //m
+const float imu_laser_x = -0.1016; //m, roughly measured with a tape measure
+const float imu_laser_y = 0.0762; //m, roughly measured with a tape measure
 
 void scanCallback(const sensor_msgs::LaserScan& msg){
+  static tf::TransformBroadcaster br;
+
   trans.setOrigin(tf::Vector3(tr_x, tr_y, 0.0));
   trans.setRotation(q);
 
@@ -52,7 +53,7 @@ void encoderCallback(const std_msgs::Float64& flt_msg) {
 }
 
 int main(int argc, char** argv){
-  ros::init(argc, argv, "broadcaster");
+  ros::init(argc, argv, "tf_logger");
 
   q.setRPY(0, 0, 0);
   static_trans.setOrigin(tf::Vector3(imu_laser_x, imu_laser_y, 0.0));
@@ -61,7 +62,7 @@ int main(int argc, char** argv){
   ros::NodeHandle node;
   ros::Subscriber scanSub = node.subscribe("/scan", 10, &scanCallback);
   ros::Subscriber encoderSub = node.subscribe("/encoder", 10, &encoderCallback);
-  ros::Subscriber imuSub = node.subscribe("/encoder", 10, &imuCallback);
+  ros::Subscriber imuSub = node.subscribe("/BNO055", 10, &imuCallback);
   prev_t = ros::Time::now().toSec();
 
   ros::spin();
