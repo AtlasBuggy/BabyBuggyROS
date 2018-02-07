@@ -29,20 +29,10 @@ long long string_to_int64(string s) {
 
 NaborisArduinoBridge::NaborisArduinoBridge(ros::NodeHandle* nodehandle):nh(*nodehandle)
 {
-    imu_pub = nh.advertise<sensor_msgs::Imu>("BNO055", 5);
-    //right_encoder_pub = nh.advertise<std_msgs::Int64>("right_encoder", 5);
-    //left_encoder_pub = nh.advertise<std_msgs::Int64>("left_encoder", 5);
+    nh.param<string>("serial_port", serial_port, "usb-Silicon_Labs_CP2104_USB_to_UART_Bridge_Controller_00FEBA3D-if00-port0");
+    nh.param<int>("serial_baud", serial_baud, 115200);
 
-    if (!nh.getParam(NODE_NAME + "/serial_port", serial_port))
-    {
-        ROS_INFO_STREAM("Serial Port Parameter not found, using default");
-        serial_port = "/dev/ttyUSB0";
-    }
-    if (!nh.getParam(NODE_NAME + "/serial_baud", serial_baud))
-    {
-        ROS_INFO_STREAM("Serial Baud parameter not found, using default");
-        serial_baud = 115200;
-    }
+    imu_pub = nh.advertise<sensor_msgs::Imu>("/BNO055", 5);
 
     euler_roll = 0.0;
     euler_pitch = 0.0;
@@ -160,9 +150,9 @@ void NaborisArduinoBridge::parseImuMessage()
             case 't': ROS_DEBUG("imu arduino time: %s", token.substr(1).c_str()); break;
             case 'e':
                 switch (token.at(1)) {
-                    case 'z': euler_roll = M_PI / 180.0 * STR_TO_FLOAT(token.substr(2)); break;
+                    case 'x': euler_roll = M_PI / 180.0 * STR_TO_FLOAT(token.substr(2)); break;
                     case 'y': euler_pitch = M_PI / 180.0 * STR_TO_FLOAT(token.substr(2)); break;
-                    case 'x': euler_yaw = M_PI / 180.0 * STR_TO_FLOAT(token.substr(2)); break;
+                    case 'z': euler_yaw = M_PI / 180.0 * STR_TO_FLOAT(token.substr(2)); break;
                 }
                 break;
             // case 'a':
