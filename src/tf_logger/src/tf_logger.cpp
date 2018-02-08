@@ -14,7 +14,7 @@ tf::Transform trans;
 float tr_x = 0; //m, overall motion in x plane
 float tr_y = 0; //m, overall motion in y plane
 float dt = 0; //seconds, change in time
-float prev_t = 0; //seconds, previous time 
+float prev_t = 0; //seconds, previous time
 float prev_theta = 0; //radians, keeps track of previous angle
 float theta = 0; //radians, calculates current angle
 float banked_dist = 0.0; //m, banks distance
@@ -29,7 +29,7 @@ void scanCallback(const sensor_msgs::LaserScan& msg){
   trans.setOrigin(tf::Vector3(tr_x, tr_y, 0.0));
   trans.setRotation(q);
 
-  br.sendTransform(tf::StampedTransform(trans, ros::Time::now(), "laser", "base_link"));
+  br.sendTransform(tf::StampedTransform(trans, ros::Time::now(), "base_link", "laser"));
   br.sendTransform(tf::StampedTransform(static_trans, ros::Time::now(), "base_link", "odom"));
 }
 
