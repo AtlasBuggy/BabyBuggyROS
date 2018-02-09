@@ -40,19 +40,6 @@ void scanCallback(const sensor_msgs::LaserScan& msg){
     br.sendTransform(tf::StampedTransform(static_trans_laser, ros::Time::now(), "base_link", "laser"));
     br.sendTransform(tf::StampedTransform(static_trans_imu, ros::Time::now(), "imu", "base_link"));
     br.sendTransform(tf::StampedTransform(trans, ros::Time::now(), "odom", "imu"));
-
-<<<<<<< HEAD
-  br.sendTransform(tf::StampedTransform(trans, ros::Time::now(), "base_link", "laser"));
-  br.sendTransform(tf::StampedTransform(static_trans, ros::Time::now(), "base_link", "odom"));
-=======
-    /*
-    geometry_msgs::Pose msg;
-    msg.position.x = tr_x/1000.0;
-    msg.position.y = tr_y/1000.0;
-    msg.position.z = 0;
-    msg.orientation = q;
-    posePub.publish(msg);*/
->>>>>>> c49f123ee4a9129d68a6e4826d00b8c0d2b8b166
 }
 
 void imuCallback(const sensor_msgs::Imu& imu_msg)

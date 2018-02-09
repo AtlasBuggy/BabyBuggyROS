@@ -119,8 +119,11 @@ int main(int argc, char** argv){
 
     geometry_msgs::Quaternion orient_msg;
     geometry_msgs::PoseStamped pose_msg;
+    nav_msgs::Odometry odom_msg;
+
     pose_msg.pose.position.z = 0;
     pose_msg.header.frame_id = "base_link";
+    odom_msg.header.frame_id = "rob_odom";
     // orient_msg.header.frame_id = "orientation_link";
 
     while (node.ok())
@@ -138,24 +141,21 @@ int main(int argc, char** argv){
         pose_msg.pose.position.y = tr_y;
         pose_msg.pose.orientation = orient_msg;
 
-        nav_msgs::Odometry odom;
-
-        odom.header.stamp = ros::Time::now();
-        odom.header.frame_id = "odom";
+        odom_msg.header.stamp = ros::Time::now();
 
         //set the position
-        odom.pose.pose.position.x = tr_x;
-        odom.pose.pose.position.y = tr_y;
-        odom.pose.pose.position.z = 0.0;
-        odom.pose.pose.orientation = q;
+        odom_msg.pose.pose.position.x = tr_x;
+        odom_msg.pose.pose.position.y = tr_y;
+        odom_msg.pose.pose.position.z = 0.0;
+        odom_msg.pose.pose.orientation = orient_msg;
 
         //set the velocity
-        odom.child_frame_id = "base_link";
-        odom.twist.twist.linear.x = tr_x;
-        odom.twist.twist.linear.y = tr_y;
-        odom.twist.twist.angular.z = theta;
+        odom_msg.child_frame_id = "base_link";
+        odom_msg.twist.twist.linear.x = tr_x;
+        odom_msg.twist.twist.linear.y = tr_y;
+        odom_msg.twist.twist.angular.z = theta;
 
-        odomPub.publish(odom);
+        odomPub.publish(odom_msg);
 
         posePub.publish(pose_msg);
         ros::spinOnce();
