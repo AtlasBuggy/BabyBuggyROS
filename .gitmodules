@@ -1,0 +1,3 @@
+[submodule "src/gpuSLAM"]
+	path = src/gpuSLAM
+	url = https://github.com/nischalkn/gpuSLAM
