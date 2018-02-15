@@ -9,7 +9,7 @@ Encoder encoder1(3, 4);
 ros::NodeHandle nh;
 
 const float pi = 3.14159265358979323846;
-const float wheel_diameter = 30.825;
+const float wheel_radius = 30.825;
 const int ticks_per_rotation = 256;
 const String publish_stream = "encoder";
 
@@ -21,7 +21,7 @@ std_msgs::Float64 flt_msg;
 ros::Publisher encoder("encoder", &flt_msg);
 
 void setup() {
-  tick_distance =  wheel_diameter * pi / ticks_per_rotation;
+  tick_distance =  2 * wheel_radius * pi / ticks_per_rotation;
   nh.initNode();
   nh.advertise(encoder);
 }
