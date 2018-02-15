@@ -57,7 +57,7 @@ void setup() {
   pinMode(motorPin2, OUTPUT);
 
   nh.initNode();
-  ros::Subscriber steeringWheel = nh.subscribe("chatter", 10, steer);
+  ros::Subscriber steeringWheel = nh.subscribe("steering", 10, steer);
   ros::spin();
 }
 
