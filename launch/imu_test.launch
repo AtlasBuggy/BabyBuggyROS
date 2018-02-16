@@ -1,5 +1,5 @@
 <launch>
 	<node name="imu" pkg="rosserial_python" type="serial_node.py">
-		<param name="port" value="/dev/ttyUSB0"/>
+		<param name="port" value="/dev/ttyUSB2"/>
 	</node>
 </launch>

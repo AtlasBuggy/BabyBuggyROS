@@ -14,30 +14,48 @@
 
 ros::NodeHandle nh;
 std_msgs::Int32 int_msg;
+int requestVal;
 
-void turn_right () {
+void steer(const std_msgs::Int32& msg){
+  requestVal = msg.data; 
+}
+
+ros::Subscriber<std_msgs::Int32> steeringSub ("steering", steer);
+
+void turn_left () {
   digitalWrite(DIR_PIN, HIGH);
   digitalWrite(PWM_PIN, HIGH);
 }
 
-void turn_left () {
+void turn_right () {
   digitalWrite(DIR_PIN, LOW);
   digitalWrite(PWM_PIN, HIGH);
 }
 
+void setup() {
+  pinMode(DIR_PIN, OUTPUT);
+  pinMode(BRAKE_PIN, OUTPUT);
+  pinMode(PWM_PIN, OUTPUT);
+  pinMode(POT_PIN, INPUT);
 
-void steer(const std_msgs::Int32::ConstPtr& msg){
-  int requestVal = msg.data;
+  nh.initNode();
+  nh.subscribe(steeringSub);
+}
+
+void loop(){
   // absolute steering
   if (requestVal <= 1100) {
     int currVal = analogRead(POT_PIN);
-    while(((int diff=requestVal-currVal)*diff)<25){
+    int diff=requestVal-currVal;
+    while((diff*diff)>10){
       if(diff>0){
         turn_right();
       }else{
         turn_left();
       }
       delay(10);
+      currVal = analogRead(POT_PIN);
+      diff=requestVal-currVal;
     }
   } else {
   // relative steering
@@ -49,17 +67,6 @@ void steer(const std_msgs::Int32::ConstPtr& msg){
       //error?
     }
   }
+  
+  nh.spinOnce();
 }
-
-void setup() {
-  pinMode(DIR_PIN, OUTPUT);
-  pinMode(BRAKE_PIN, OUTPUT);
-  pinMode(PWM_PIN, OUTPUT);
-  pinMode(POT_PIN, INPUT);
-
-  nh.initNode();
-  ros::Subscriber steeringWheel = nh.subscribe("steering", 10, steer);
-  ros::spin();
-}
-
-void loop(){}
