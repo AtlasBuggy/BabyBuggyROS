@@ -9,7 +9,13 @@
 int steer_instruction = 1500;
 
 void joyCallback(const sensor_msgs::Joy& joy_msg) {
+	if (joy_msg.buttons[4] == joy_msg.buttons[5]) {
 
+	} else if (joy_msg.buttons[4] > joy_msg.buttons[5]) {
+		steer_instruction = 2048;
+	} else {
+		steer_instruction = 4096;
+	}
 }
 
 
