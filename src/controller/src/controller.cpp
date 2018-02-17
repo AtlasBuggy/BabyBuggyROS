@@ -10,7 +10,7 @@ int steer_instruction = 1500;
 
 void joyCallback(const sensor_msgs::Joy& joy_msg) {
 	if (joy_msg.buttons[4] == joy_msg.buttons[5]) {
-
+		steer_instruction = 1500;
 	} else if (joy_msg.buttons[4] > joy_msg.buttons[5]) {
 		steer_instruction = 2048;
 	} else {
@@ -28,6 +28,8 @@ int main(int argc, char** argv) {
 
     ros::Publisher steerPub = node.advertise<std_msgs::Int32>("/steering", 10);
 
+    ros::Rate loop_rate(10);
+
     std_msgs::Int32 steer_msg;
 
     while (node.ok())
@@ -38,4 +40,5 @@ int main(int argc, char** argv) {
         ros::spinOnce();
         loop_rate.sleep();
     }
+    return 0;
 }
