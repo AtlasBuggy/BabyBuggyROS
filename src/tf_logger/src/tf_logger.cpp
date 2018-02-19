@@ -53,7 +53,11 @@ void imuCallback(const sensor_msgs::Imu& imu_msg)
     double roll, pitch, yaw;
 
     tf::Matrix3x3 m(q);
-    m.getRPY(roll, pitch, yaw);
+    m.getEulerYPR(yaw, pitch, roll);
+    q.setRPY(roll, pitch, -yaw);
+
+    // double yaw;
+    // getYaw(q);
 
     // ROS_INFO("ROLL: %f", roll);
 
@@ -74,8 +78,8 @@ void imuCallback(const sensor_msgs::Imu& imu_msg)
     */
 
     banked_dist /= 1000.0;
-    tr_x += cos(yaw) * banked_dist;
-    tr_y += sin(yaw) * banked_dist;
+    tr_x += cos(-yaw) * banked_dist;
+    tr_y += sin(-yaw) * banked_dist;
     banked_dist = 0;
 
     // prev_t = ros::Time::now().toSec();
@@ -93,8 +97,11 @@ int main(int argc, char** argv){
     static_trans_imu.setOrigin(tf::Vector3(imu_laser_x, imu_laser_y, imu_laser_z));
     static_trans_imu.setRotation(q);
 
+    q.setRPY(M_PI, 0, 0);
     static_trans_laser.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
     static_trans_laser.setRotation(q);
+
+    q.setRPY(0, 0, 0);
 
     ros::NodeHandle node;
     ros::Subscriber scanSub = node.subscribe("/scan", 10, &scanCallback);

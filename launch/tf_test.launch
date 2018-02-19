@@ -13,7 +13,7 @@
         <param name="port" value="/dev/serial/by-id/usb-Silicon_Labs_CP2104_USB_to_UART_Bridge_Controller_00FEBA3D-if00-port0"/>
     </node>
 
-    <node name="imu" type="naboris_arduino_bridge_node" pkg="naboris_arduino_bridge" required="true" output="screen">
+    <node name="imu" type="bno055_arduino_bridge_node" pkg="bno055_arduino_bridge" required="true" output="screen">
         <param name="~serial_port" type="string" value="/dev/serial/by-id/usb-Silicon_Labs_CP2104_USB_to_UART_Bridge_Controller_00FEBA78-if00-port0"/>
         <param name="~serial_baud" type="int" value="115200"/>
     </node>
@@ -21,13 +21,18 @@
     <node name="tf_logger" pkg="tf_logger" type="tf_logger" output="screen"/>
 
 
-    <node name="gmapping" pkg="gmapping" type="slam_gmapping" args="scan:=scan">
+    <node name="gmapping" pkg="gmapping" type="slam_gmapping" args="scan:=scan"> -->
       <param name="~map_update_interval" value="0.1"/>
       <param name="~temporalUpdate" value="0.01"/>
-      <param name="~throttle_scans" value="5"/>
+      <!-- <param name="~throttle_scans" value="5"/> -->
+      <param name="~srr" value="0"/>
+      <param name="~srt" value="0.01"/>
+      <param name="~str" value="0.01"/>
+      <param name="~stt" value="0.01"/>
+      <param name="~maxUrange" value="35"/>
       <!-- <param name="~delta" value="0.01" /> -->
-      <param name="~iterations" value="5" />
-      <param name="~particles" value="1"/>
+      <!-- <param name="~iterations" value="5" /> -->
+      <!-- <param name="~particles" value="1"/> -->
       <!-- <param name="~lasamplerange" value="0.005"/> -->
       <!-- <param name="~lasamplestep" value="0.005"/> -->
       <!-- <param name="~angularUpdate" value="1"/> -->
@@ -36,4 +41,9 @@
 
     <!-- <node name="amcl" pkg="amcl" type="amcl" output="screen"/> -->
 
+    <!-- <node name="joystick" pkg="joy" type="joy_node">
+      <param name="joy_node/dev" value="/dev/input/js0"/>
+    </node>
+
+    <node name="controller" pkg="controller" type="controller"/> -->
 </launch>
