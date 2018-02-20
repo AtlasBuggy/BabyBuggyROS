@@ -1,6 +1,0 @@
-<launch>
-  <node name="gmapping" pkg="gmapping" type="slam_gmapping" args="scan:=scan" >
-    <param name="temporalUpdate" value="0.15" />
-  </node>
-  <node pkg="rosbag" type="play" name="player" output="screen" args="/home/nvidia/bagfiles/stationary_test.bag"/>
-</launch>

@@ -105,7 +105,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES controller
-#  CATKIN_DEPENDS sensor_msgs std_msgs
+#  CATKIN_DEPENDS roscpp sensor_msgs std_msgs
 #  DEPENDS system_lib
 )
 
@@ -150,6 +150,9 @@ include_directories(
 #   ${catkin_LIBRARIES}
 # )
 
+add_executable(controller src/controller.cpp)
+target_link_libraries(controller ${catkin_LIBRARIES})
+
 #############
 ## Install ##
 #############
@@ -184,9 +187,6 @@ include_directories(
 #   # myfile2
 #   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 # )
-
-add_executable(controller src/controller.cpp)
-target_link_libraries(controller ${catkin_LIBRARIES})
 
 #############
 ## Testing ##

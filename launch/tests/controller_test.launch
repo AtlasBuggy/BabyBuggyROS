@@ -1,0 +1,11 @@
+<launch>
+  <!-- <node name="steering" pkg="rosserial_python" type="serial_node.py">
+      <param name="port" value="/dev/serial/by-id/usb-Silicon_Labs_CP2104_USB_to_UART_Bridge_Controller_00FEBA3D-if00-port0"/>
+  </node> -->
+
+  <node name="joystick" pkg="joy" type="joy_node">
+    <param name="joy_node/dev" value="/dev/input/js0"/>
+  </node>
+
+  <node name="controller" pkg="controller" type="controller"/>
+</launch>
