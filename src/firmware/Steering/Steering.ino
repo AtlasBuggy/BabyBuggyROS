@@ -6,12 +6,21 @@
 
 #include <ros.h>
 #include <std_msgs/Int32.h>
+#include "DualVNH5019MotorShield.h"
 
-#define DIR_PIN 4
-#define BRAKE_PIN 3
-#define PWM_PIN A2
+#define M1INA 2
+#define M1INB 4
+#define M1ENDIAG 7
+#define M2INA 7
+#define M2INB 8
+#define M2ENDIAG 12
+#define M1CS A0
+#define M2CS A2
+
 #define POT_PIN A1
 
+DualVNH5019MotorShield md(M1INA, M1INB, M1ENDIAG, M1CS,
+                          M2INA, M2INB, M2ENDIAG, M2CS);
 ros::NodeHandle nh;
 int requestVal;
 
@@ -22,25 +31,21 @@ void steer(const std_msgs::Int32& msg){
 ros::Subscriber<std_msgs::Int32> steeringSub ("steering", steer);
 
 void turn_left() {
-  digitalWrite(DIR_PIN, HIGH);
-  digitalWrite(PWM_PIN, HIGH);
+  md.setM1Speed(-400);
 }
 
 void turn_right() {
-  digitalWrite(DIR_PIN, LOW);
-  digitalWrite(PWM_PIN, HIGH);
+  md.setM1Speed(400);
 }
 
 void stop_motor(){
-  digitalWrite(PWM_PIN, LOW);
+  md.setM1Speed(0);
 }
 
 void setup() {
-  pinMode(DIR_PIN, OUTPUT);
-  pinMode(BRAKE_PIN, OUTPUT);
-  pinMode(PWM_PIN, OUTPUT);
   pinMode(POT_PIN, INPUT);
-
+  
+  md.init();
   nh.initNode();
   nh.subscribe(steeringSub);
 }
