@@ -13,10 +13,10 @@
 #define POT_PIN A1
 
 ros::NodeHandle nh;
-int requestVal;
+int requestVal = 400;
 
 void steer(const std_msgs::Int32& msg){
-  requestVal = msg.data; 
+  requestVal = msg.data;
 }
 
 ros::Subscriber<std_msgs::Int32> steeringSub ("steering", steer);
@@ -47,10 +47,10 @@ void setup() {
 
 void loop(){
   // absolute steering
-  if (requestVal <= 1100) {
+  if (requestVal <= 1023) {
     int diff = requestVal - analogRead(POT_PIN);
-    
-    if((diff * diff) > 25){
+
+    if(abs(diff) > 5){
       if(diff > 0){
         turn_right();
       }else{
@@ -60,8 +60,12 @@ void loop(){
     else{
       stop_motor();
     }
-  } 
-  
+  }
+
+  else if (requestVal == 1500){
+    stop_motor();
+  }
+
   else {
   // relative steering
     if (requestVal == 2048) {
@@ -70,7 +74,7 @@ void loop(){
       turn_right();
     }
   }
-  
+
   delay(10);
   nh.spinOnce();
 }
