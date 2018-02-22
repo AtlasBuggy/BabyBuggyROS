@@ -6,15 +6,22 @@
 
 // Designed exclusively for Logitech Gamepad F310
 
-int steer_instruction = 1500;
+#define LEFT 2048
+#define RIGHT 4096
+#define CENTER 400
+#define STOP 1500
+
+int steer_instruction = STOP;
 
 void joyCallback(const sensor_msgs::Joy& joy_msg) {
-	if (joy_msg.buttons[4] == joy_msg.buttons[5]) {
-		steer_instruction = 1500;
+    if (joy_msg.buttons[3] == 1) {
+        steer_instruction = CENTER;
+    } else if (joy_msg.buttons[4] == joy_msg.buttons[5]) {
+		steer_instruction = STOP;
 	} else if (joy_msg.buttons[4] > joy_msg.buttons[5]) {
-		steer_instruction = 2048;
+		steer_instruction = LEFT;
 	} else {
-		steer_instruction = 4096;
+		steer_instruction = RIGHT;
 	}
 }
 
