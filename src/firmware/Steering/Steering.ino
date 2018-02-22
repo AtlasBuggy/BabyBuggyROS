@@ -15,7 +15,7 @@ ros::NodeHandle nh;
 int requestVal = 400;
 
 void steer(const std_msgs::Int32& msg){
-  requestVal = msg.data; 
+  requestVal = msg.data;
 }
 
 ros::Subscriber<std_msgs::Int32> steeringSub ("steering", steer);
@@ -34,7 +34,7 @@ void stop_motor(){
 
 void setup() {
   pinMode(POT_PIN, INPUT);
-  
+
   md.init();
   nh.initNode();
   nh.subscribe(steeringSub);
@@ -42,9 +42,9 @@ void setup() {
 
 void loop(){
   // absolute steering
-  if (requestVal <= 1100) {
+  if (requestVal <= 1023) {
     int diff = requestVal - analogRead(POT_PIN);
-    
+
     if(abs(diff) > 5){
       if(diff > 0){
         turn_right();
@@ -55,8 +55,12 @@ void loop(){
     else{
       stop_motor();
     }
-  } 
-  
+  }
+
+  else if (requestVal == 1500){
+    stop_motor();
+  }
+
   else {
   // relative steering
     if (requestVal == 2048) {
@@ -68,7 +72,7 @@ void loop(){
       stop_motor();
     }
   }
-  
+
   delay(10);
   nh.spinOnce();
 }

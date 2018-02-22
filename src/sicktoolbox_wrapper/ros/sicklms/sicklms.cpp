@@ -66,7 +66,8 @@ void publish_scan(diagnostic_updater::DiagnosedPublisher<sensor_msgs::LaserScan>
     scan_msg.range_max = 81;
   }
   else if (scale == 0.001) {
-    scan_msg.range_max = 8.1;
+    // scan_msg.range_max = 8.1;
+    scan_msg.range_max = 32;
   }
   scan_msg.ranges.resize(n_range_values);
   scan_msg.header.stamp = start;
