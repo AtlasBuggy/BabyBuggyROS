@@ -8,21 +8,11 @@
 #include <std_msgs/Int32.h>
 #include "DualVNH5019MotorShield.h"
 
-#define M1INA 2
-#define M1INB 4
-#define M1ENDIAG 7
-#define M2INA 7
-#define M2INB 8
-#define M2ENDIAG 12
-#define M1CS A0
-#define M2CS A2
+#define POT_PIN A2
 
-#define POT_PIN A1
-
-DualVNH5019MotorShield md(M1INA, M1INB, M1ENDIAG, M1CS,
-                          M2INA, M2INB, M2ENDIAG, M2CS);
+DualVNH5019MotorShield md;
 ros::NodeHandle nh;
-int requestVal;
+int requestVal = 400;
 
 void steer(const std_msgs::Int32& msg){
   requestVal = msg.data; 
@@ -31,11 +21,11 @@ void steer(const std_msgs::Int32& msg){
 ros::Subscriber<std_msgs::Int32> steeringSub ("steering", steer);
 
 void turn_left() {
-  md.setM1Speed(-400);
+  md.setM1Speed(400);
 }
 
 void turn_right() {
-  md.setM1Speed(400);
+  md.setM1Speed(-400);
 }
 
 void stop_motor(){
@@ -55,7 +45,7 @@ void loop(){
   if (requestVal <= 1100) {
     int diff = requestVal - analogRead(POT_PIN);
     
-    if((diff * diff) > 25){
+    if(abs(diff) > 5){
       if(diff > 0){
         turn_right();
       }else{
@@ -73,6 +63,9 @@ void loop(){
       turn_left();
     } else if (requestVal == 4096) {
       turn_right();
+    }
+    else {
+      stop_motor();
     }
   }
   
