@@ -20,6 +20,8 @@ const string Bno055ArduinoBridge::ENCODER_MESSAGE_HEADER = "e";
 
 const size_t Bno055ArduinoBridge::MOTOR_COMMAND_MESSAGE_LEN = 17;
 
+const float Bno055ArduinoBridge::JUMP_WARN_THRESHOLD = 0.5; // radians
+
 long long string_to_int64(string s) {
     stringstream ss(s);
     long long integer = 0;
@@ -37,6 +39,15 @@ Bno055ArduinoBridge::Bno055ArduinoBridge(ros::NodeHandle* nodehandle):nh(*nodeha
     euler_roll = 0.0;
     euler_pitch = 0.0;
     euler_yaw = 0.0;
+
+    prev_euler_roll = 0.0;
+    prev_euler_pitch = 0.0;
+    prev_euler_yaw = 0.0;
+
+    system_status = 0;
+    accel_status = 0;
+    gyro_status = 0;
+    mag_status = 0;
 }
 
 
@@ -185,10 +196,10 @@ void Bno055ArduinoBridge::parseImuMessage()
                 break;
             case 's':
                 switch (token.at(1)) {
-                    case 's': ROS_DEBUG("system status: %s", token.substr(2).c_str()); break;
-                    case 'g': ROS_DEBUG("gyro status: %s", token.substr(2).c_str()); break;
-                    case 'a': ROS_DEBUG("accel status: %s", token.substr(2).c_str()); break;
-                    case 'm': ROS_DEBUG("mag status: %s", token.substr(2).c_str()); break;
+                    case 's': system_status = STR_TO_INT(token.substr(2)); break;
+                    case 'g': accel_status = STR_TO_INT(token.substr(2)); break;
+                    case 'a': gyro_status = STR_TO_INT(token.substr(2)); break;
+                    case 'm': mag_status = STR_TO_INT(token.substr(2)); break;
                 }
                 break;
             default:
@@ -198,6 +209,29 @@ void Bno055ArduinoBridge::parseImuMessage()
 
         serial_buffer.erase(0, pos + MESSAGE_DELIMITER.length());
     }
+
+    if (system_status <= 1) {
+        ROS_WARN("System status is %i! Sensor data may be invalid!!", system_error);
+    }
+
+    ROS_DEBUG("system status: %i", system_status);
+    ROS_DEBUG("gyro status: %i", accel_status);
+    ROS_DEBUG("accel status: %i", gyro_status);
+    ROS_DEBUG("mag status: %i", mag_status);
+
+    if (euler_roll - prev_euler_roll > JUMP_WARN_THRESHOLD) {
+        ROS_WARN("bno055 roll jumped suddenly (amount: %f)", euler_roll - prev_euler_roll);
+    }
+    if (euler_pitch - prev_euler_pitch > JUMP_WARN_THRESHOLD) {
+        ROS_WARN("bno055 pitch jumped suddenly (amount: %f)", euler_pitch - prev_euler_pitch);
+    }
+    if (euler_yaw - prev_euler_yaw > JUMP_WARN_THRESHOLD) {
+        ROS_WARN("bno055 yaw jumped suddenly (amount: %f)", euler_yaw - prev_euler_yaw);
+    }
+
+    prev_euler_roll = euler_roll;
+    prev_euler_pitch = euler_pitch;
+    prev_euler_yaw = euler_yaw;
 
     eulerToQuat(imu_msg, euler_roll, euler_pitch, euler_yaw);
 

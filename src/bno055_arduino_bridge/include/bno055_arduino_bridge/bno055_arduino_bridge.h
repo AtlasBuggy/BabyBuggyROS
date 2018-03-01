@@ -32,6 +32,15 @@ private:
     float euler_pitch;
     float euler_yaw;
 
+    float prev_euler_roll;
+    float prev_euler_pitch;
+    float prev_euler_yaw;
+
+    int system_status;
+    int accel_status;
+    int gyro_status;
+    int mag_status;
+
     sensor_msgs::Imu imu_msg;
     void eulerToQuat(sensor_msgs::Imu &imu_msg, float roll, float pitch, float yaw);
     void parseImuMessage();
@@ -61,6 +70,8 @@ public:
     static const string ENCODER_MESSAGE_HEADER;
 
     static const size_t MOTOR_COMMAND_MESSAGE_LEN;
+
+    static const float JUMP_WARN_THRESHOLD;
 
     int run();
 };
