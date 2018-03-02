@@ -32,6 +32,9 @@ SerialManager manager;
 // OPERATION_MODE_NDOF without fast magnetometer calibration
 // Adafruit_BNO055 bno = Adafruit_BNO055(OPERATION_MODE_NDOF_FMC_OFF);
 
+Adafruit_BNO055 bno = Adafruit_BNO055();
+
+
 imu::Quaternion quat;
 imu::Vector<3> euler;
 imu::Vector<3> mag;
@@ -41,8 +44,6 @@ imu::Vector<3> linaccel;
 
 /* Set the delay between fresh samples */
 #define BNO055_SAMPLERATE_DELAY_MS (20)
-
-Adafruit_BNO055 bno = Adafruit_BNO055(55);
 
 /**************************************************************************/
 /*
