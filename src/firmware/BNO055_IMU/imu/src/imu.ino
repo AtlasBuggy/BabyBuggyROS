@@ -14,23 +14,11 @@
 #define INCLUDE_FILTERED_DATA
 // #define USE_QUATERNIONS
 // #define INCLUDE_MAG_DATA
-#define INCLUDE_GYRO_DATA
+// #define INCLUDE_GYRO_DATA
 // #define INCLUDE_ACCEL_DATA
-#define INCLUDE_LINACCEL_DATA
-
-#define BNO055_SAMPLERATE_DELAY_MS (100)
-
-void displaySensorDetails(void);
-void displaySensorStatus(void);
-
-void displayCalStatus(void);
-void displaySensorOffsets(const adafruit_bno055_offsets_t &calibData);
-void initIMU();
-void updateIMU();
+// #define INCLUDE_LINACCEL_DATA
 
 SerialManager manager;
-
-Adafruit_BNO055 bno = Adafruit_BNO055(55);
 
 // Accelerometer & gyroscope only for getting relative orientation, subject to gyro drift
 // Adafruit_BNO055 bno = Adafruit_BNO055(0x08); // OPERATION_MODE_IMUPLUS
@@ -51,6 +39,10 @@ imu::Vector<3> gyro;
 imu::Vector<3> accel;
 imu::Vector<3> linaccel;
 
+/* Set the delay between fresh samples */
+#define BNO055_SAMPLERATE_DELAY_MS (20)
+
+Adafruit_BNO055 bno = Adafruit_BNO055(55);
 
 /**************************************************************************/
 /*
@@ -160,7 +152,6 @@ void displaySensorOffsets(const adafruit_bno055_offsets_t &calibData)
 }
 
 
-
 /**************************************************************************/
 /*
 Initialize the BNO055
@@ -168,7 +159,7 @@ Initialize the BNO055
 /**************************************************************************/
 void initIMU() {
     delay(1000);
-    // Serial.println("Orientation Sensor Test"); Serial.println("");
+    Serial.println("Atlasbuggy BNO055 driver code"); Serial.println("");
 
     /* Initialise the sensor */
     if (!bno.begin())
@@ -177,11 +168,10 @@ void initIMU() {
         Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
         while (1);
     }
-    delay(500);
 
     int eeAddress = 0;
     long bnoID;
-    // bool foundCalib = false;
+    bool foundCalib = false;
 
     EEPROM.get(eeAddress, bnoID);
 
@@ -213,7 +203,7 @@ void initIMU() {
         bno.setSensorOffsets(calibrationData);
 
         Serial.println("\n\nCalibration data loaded into BNO055");
-        // foundCalib = true;
+        foundCalib = true;
     }
 
     delay(1000);
@@ -224,65 +214,65 @@ void initIMU() {
     /* Optional: Display current status */
     displaySensorStatus();
 
-    //Crystal must be configured AFTER loading calibration data into BNO055.
+   //Crystal must be configured AFTER loading calibration data into BNO055.
     bno.setExtCrystalUse(true);
 
-    // sensors_event_t event;
-    // bno.getEvent(&event);
-    // if (foundCalib){
-    //     Serial.println("Move sensor slightly to calibrate magnetometers");
-    //     while (!bno.isFullyCalibrated())
-    //     {
-    //         bno.getEvent(&event);
-    //         delay(BNO055_SAMPLERATE_DELAY_MS);
-    //     }
-    // }
-    //  else
-    //  {
-    //      Serial.println("Please Calibrate Sensor: ");
-    //      while (!bno.isFullyCalibrated())
-    //      {
-    //          bno.getEvent(&event);
-    //
-    //          Serial.print("X: ");
-    //          Serial.print(event.orientation.x, 4);
-    //          Serial.print("\tY: ");
-    //          Serial.print(event.orientation.y, 4);
-    //          Serial.print("\tZ: ");
-    //          Serial.print(event.orientation.z, 4);
-    //
-    //          /* Optional: Display calibration status */
-    //          displayCalStatus();
-    //
-    //          /* New line for the next sample */
-    //          Serial.println("");
-    //
-    //          /* Wait the specified delay before requesting new data */
-    //          delay(BNO055_SAMPLERATE_DELAY_MS);
-    //      }
-    //  }
+    sensors_event_t event;
+    bno.getEvent(&event);
+    if (foundCalib){
+        Serial.println("Move sensor slightly to calibrate magnetometers");
+        while (!bno.isFullyCalibrated())
+        {
+            bno.getEvent(&event);
+            delay(BNO055_SAMPLERATE_DELAY_MS);
+        }
+    }
+    else
+    {
+        Serial.println("Please Calibrate Sensor: ");
+        while (!bno.isFullyCalibrated())
+        {
+            bno.getEvent(&event);
 
-    // Serial.println("\nFully calibrated!");
-    // Serial.println("--------------------------------");
-    // Serial.println("Calibration Results: ");
-    // adafruit_bno055_offsets_t newCalib;
-    // bno.getSensorOffsets(newCalib);
-    // displaySensorOffsets(newCalib);
+            Serial.print("X: ");
+            Serial.print(event.orientation.x, 4);
+            Serial.print("\tY: ");
+            Serial.print(event.orientation.y, 4);
+            Serial.print("\tZ: ");
+            Serial.print(event.orientation.z, 4);
 
-    //  Serial.println("\n\nStoring calibration data to EEPROM...");
-    //
-    //  eeAddress = 0;
-    //  bno.getSensor(&sensor);
-    //  bnoID = sensor.sensor_id;
-    //
-    //  EEPROM.put(eeAddress, bnoID);
-    //
-    //  eeAddress += sizeof(long);
-    //  EEPROM.put(eeAddress, newCalib);
-    //  Serial.println("Data stored to EEPROM.");
-    //
-    //  Serial.println("\n--------------------------------\n");
-     // delay(500);
+            /* Optional: Display calibration status */
+            displayCalStatus();
+
+            /* New line for the next sample */
+            Serial.println("");
+
+            /* Wait the specified delay before requesting new data */
+            delay(BNO055_SAMPLERATE_DELAY_MS);
+        }
+    }
+
+    Serial.println("\nFully calibrated!");
+    Serial.println("--------------------------------");
+    Serial.println("Calibration Results: ");
+    adafruit_bno055_offsets_t newCalib;
+    bno.getSensorOffsets(newCalib);
+    displaySensorOffsets(newCalib);
+
+    Serial.println("\n\nStoring calibration data to EEPROM...");
+
+    eeAddress = 0;
+    bno.getSensor(&sensor);
+    bnoID = sensor.sensor_id;
+
+    EEPROM.put(eeAddress, bnoID);
+
+    eeAddress += sizeof(long);
+    EEPROM.put(eeAddress, newCalib);
+    Serial.println("Data stored to EEPROM.");
+
+    Serial.println("\n--------------------------------\n");
+    delay(500);
 }
 
 float qw, qx, qy, qz;
@@ -501,8 +491,8 @@ void setup() {
 
 void loop() {
   if (manager.available()) {
-    int status = manager.readSerial();
-
+    manager.readSerial();
+    // int status = manager.readSerial();
     // String command = manager.getCommand();
     //
     // if (status == 2)  // start event
@@ -522,6 +512,6 @@ void loop() {
   if (!manager.isPaused()) {
     updateIMU();
     // 100Hz update rate for imu
-    delay(10);
+    delay(BNO055_SAMPLERATE_DELAY_MS);
   }
 }
