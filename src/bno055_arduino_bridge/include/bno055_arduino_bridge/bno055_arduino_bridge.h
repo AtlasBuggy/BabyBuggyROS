@@ -28,6 +28,11 @@ private:
     serial::Serial serial_ref;
     void waitForPacket(const string packet);
 
+    bool euler_data_received;
+    bool gyro_data_received;
+    bool linaccel_data_received;
+    bool quat_data_received;
+
     float euler_roll;
     float euler_pitch;
     float euler_yaw;
@@ -40,6 +45,14 @@ private:
     int accel_status;
     int gyro_status;
     int mag_status;
+
+    int prev_system_status;
+    int prev_accel_status;
+    int prev_gyro_status;
+    int prev_mag_status;
+
+    ros::Time debug_info_prev_time;
+    ros::Duration debug_info_delay;
 
     sensor_msgs::Imu imu_msg;
     void eulerToQuat(sensor_msgs::Imu &imu_msg, float roll, float pitch, float yaw);

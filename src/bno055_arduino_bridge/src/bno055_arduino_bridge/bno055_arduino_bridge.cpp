@@ -31,7 +31,9 @@ long long string_to_int64(string s) {
 
 Bno055ArduinoBridge::Bno055ArduinoBridge(ros::NodeHandle* nodehandle):nh(*nodehandle)
 {
+    float _debug_info_delay;
     nh.param<string>("serial_port", serial_port, "usb-Silicon_Labs_CP2104_USB_to_UART_Bridge_Controller_00FEBA3D-if00-port0");
+    nh.param<float>("debug_info_delay", _debug_info_delay, 1.0);
     nh.param<int>("serial_baud", serial_baud, 115200);
 
     imu_pub = nh.advertise<sensor_msgs::Imu>("/BNO055", 5);
@@ -48,13 +50,26 @@ Bno055ArduinoBridge::Bno055ArduinoBridge(ros::NodeHandle* nodehandle):nh(*nodeha
     accel_status = 0;
     gyro_status = 0;
     mag_status = 0;
+
+    prev_system_status = 0;
+    prev_accel_status = 0;
+    prev_gyro_status = 0;
+    prev_mag_status = 0;
+
+    debug_info_prev_time = ros::Time::now();
+    debug_info_delay = ros::Duration(_debug_info_delay);
+
+    euler_data_received = false;
+    gyro_data_received = false;
+    linaccel_data_received = false;
+    quat_data_received = false;
 }
 
 
 void Bno055ArduinoBridge::waitForPacket(const string packet)
 {
     ros::Time begin = ros::Time::now();
-    ros::Duration timeout = ros::Duration(5.0);
+    ros::Duration timeout = ros::Duration(10.0);
 
     while ((ros::Time::now() - begin) < timeout)
     {
@@ -165,11 +180,15 @@ void Bno055ArduinoBridge::parseImuMessage()
                     case 'y': euler_pitch = M_PI / 180.0 * STR_TO_FLOAT(token.substr(2)); break;
                     case 'z': euler_yaw = M_PI / 180.0 * STR_TO_FLOAT(token.substr(2)); break;
                 }
+                if (euler_roll != 0.0 || euler_pitch != 0.0 || euler_yaw != 0.0) { // sensor will report 0's at the very beginning
+                    euler_data_received = true;
+                }
                 break;
             // case 'a':
             //
             //     break;
             case 'g':
+                gyro_data_received = true;
                 switch (token.at(1)) {
                     case 'x': imu_msg.angular_velocity.x = STR_TO_FLOAT(token.substr(2)); break;
                     case 'y': imu_msg.angular_velocity.y = STR_TO_FLOAT(token.substr(2)); break;
@@ -180,6 +199,7 @@ void Bno055ArduinoBridge::parseImuMessage()
             //
             //     break;
             case 'l':
+                linaccel_data_received = true;
                 switch (token.at(1)) {
                     case 'x': imu_msg.linear_acceleration.x = STR_TO_FLOAT(token.substr(2)); break;
                     case 'y': imu_msg.linear_acceleration.y = STR_TO_FLOAT(token.substr(2)); break;
@@ -187,6 +207,7 @@ void Bno055ArduinoBridge::parseImuMessage()
                 }
                 break;
             case 'q':
+                quat_data_received = true;
                 switch (token.at(1)) {
                     case 'w': imu_msg.orientation.w = STR_TO_FLOAT(token.substr(2)); break;
                     case 'x': imu_msg.orientation.x = STR_TO_FLOAT(token.substr(2)); break;
@@ -211,29 +232,54 @@ void Bno055ArduinoBridge::parseImuMessage()
     }
 
     if (system_status <= 1) {
-        ROS_WARN("System status is %i! Sensor data may be invalid!!", system_error);
+        ROS_WARN("System status is %i! Sensor data may be invalid!!", system_status);
     }
 
-    ROS_DEBUG("system status: %i", system_status);
-    ROS_DEBUG("gyro status: %i", accel_status);
-    ROS_DEBUG("accel status: %i", gyro_status);
-    ROS_DEBUG("mag status: %i", mag_status);
+    if (system_status != prev_system_status) {
+        ROS_INFO("system status is now: %i. Was %i", system_status, prev_system_status);
+        prev_system_status = system_status;
+    }
+    if (accel_status != prev_accel_status) {
+        ROS_INFO("gyro status is now: %i. Was %i", accel_status, prev_accel_status);
+        prev_accel_status = accel_status;
+    }
+    if (gyro_status != prev_gyro_status) {
+        ROS_INFO("accel status is now: %i. Was %i", gyro_status, prev_gyro_status);
+        prev_gyro_status = gyro_status;
+    }
+    if (mag_status != prev_mag_status) {
+        ROS_INFO("mag status is now: %i. Was %i", mag_status, prev_mag_status);
+        prev_mag_status = mag_status;
+    }
 
     if (euler_roll - prev_euler_roll > JUMP_WARN_THRESHOLD) {
-        ROS_WARN("bno055 roll jumped suddenly (amount: %f)", euler_roll - prev_euler_roll);
+        ROS_WARN("bno055 roll jumped suddenly (%frad -> %frad)", prev_euler_roll, euler_roll);
     }
     if (euler_pitch - prev_euler_pitch > JUMP_WARN_THRESHOLD) {
-        ROS_WARN("bno055 pitch jumped suddenly (amount: %f)", euler_pitch - prev_euler_pitch);
+        ROS_WARN("bno055 pitch jumped suddenly (%frad -> %frad)", prev_euler_pitch, euler_pitch);
     }
     if (euler_yaw - prev_euler_yaw > JUMP_WARN_THRESHOLD) {
-        ROS_WARN("bno055 yaw jumped suddenly (amount: %f)", euler_yaw - prev_euler_yaw);
+        ROS_WARN("bno055 yaw jumped suddenly (%frad -> %frad)", prev_euler_yaw, euler_yaw);
     }
 
     prev_euler_roll = euler_roll;
     prev_euler_pitch = euler_pitch;
     prev_euler_yaw = euler_yaw;
 
-    eulerToQuat(imu_msg, euler_roll, euler_pitch, euler_yaw);
 
-    imu_pub.publish(imu_msg);
+    if (ros::Time::now() - debug_info_prev_time > debug_info_delay) {
+        debug_info_prev_time = ros::Time::now();
+        ROS_INFO("X: %f, Y: %f, Z: %f", euler_roll * 180 / M_PI, euler_pitch * 180 / M_PI, euler_yaw * 180 / M_PI);
+
+        if (system_status <= 1 || !euler_data_received) {
+            ROS_INFO("No data to publish.");
+        }
+    }
+
+    // Only publish if the sensor is confident in its own values
+    if (system_status > 1 && euler_data_received) {
+        eulerToQuat(imu_msg, euler_roll, euler_pitch, euler_yaw);
+
+        imu_pub.publish(imu_msg);
+    }
 }
