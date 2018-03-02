@@ -18,15 +18,19 @@ tf::Transform trans;
 float tr_x = 0; //m, overall motion in x plane
 float tr_y = 0; //m, overall motion in y plane
 float dt = 0; //seconds, change in time
-float prev_t = 0; //seconds, previous time
-float prev_theta = 0; //radians, keeps track of previous angle
-float theta = 0; //radians, calculates current angle
+double roll, pitch, yaw; //radians, calculates current angle
 float banked_dist = 0.0; //m, banks distance
 
 //distance from imu to laser, meters, roughly measured with a tape measure
 const float imu_laser_x = 0.1016;
 const float imu_laser_y = 0.0762;
 const float imu_laser_z = 0.095;
+
+ros::Time debug_info_prev_time;
+ros::Duration debug_info_delay;
+
+bool imu_data_received = false;
+bool enc_data_received = false;
 
 //distance from base_link to imu
 
@@ -50,44 +54,21 @@ void imuCallback(const sensor_msgs::Imu& imu_msg)
         imu_msg.orientation.z,
         imu_msg.orientation.w
     );
-    double roll, pitch, yaw;
 
     tf::Matrix3x3 m(q);
     m.getEulerYPR(yaw, pitch, roll);
     q.setRPY(roll, pitch, -yaw);
 
-    // double yaw;
-    // getYaw(q);
-
-    // ROS_INFO("ROLL: %f", roll);
-
-    /*
-    float dtheta_z = imu_msg.angular_velocity.z;
-    dt = ros::Time::now().toSec() - prev_t;
-    theta += dtheta_z * dt;
-    */
-
-    /*
-    theta = roll < 0 ? roll + 2*M_PI : roll;
-
-    float dt = theta - prev_theta;
-    if(dt > M_PI){
-    dt -= 2*M_PI;
-
-    float mid_theta = prev_theta + dt;
-    */
-
-    banked_dist /= 1000.0;
     tr_x += cos(-yaw) * banked_dist;
     tr_y += sin(-yaw) * banked_dist;
     banked_dist = 0;
 
-    // prev_t = ros::Time::now().toSec();
-    prev_theta = theta;
+    imu_data_received = true;
 }
 
 void encoderCallback(const std_msgs::Float64& flt_msg) {
-    banked_dist += flt_msg.data;
+    banked_dist += flt_msg.data / 1000;
+    enc_data_received = true;
 }
 
 int main(int argc, char** argv){
@@ -111,30 +92,44 @@ int main(int argc, char** argv){
 
     ros::Rate loop_rate(10);
 
-    prev_t = ros::Time::now().toSec();
-
     geometry_msgs::Quaternion orient_msg;
     geometry_msgs::PoseStamped pose_msg;
     pose_msg.pose.position.z = 0;
     pose_msg.header.frame_id = "base_link";
-    // orient_msg.header.frame_id = "orientation_link";
+
+    debug_info_prev_time = ros::Time::now();
+    debug_info_delay = ros::Duration(1.0);
 
     while (node.ok())
     {
-        pose_msg.header.stamp = ros::Time::now();
-        // orient_msg.header.stamp = ros::Time::now();
-        // ROS_INFO("x: %f, y: %f", tr_x, tr_y);
+        // Only publish if data has been received.
+        if (imu_data_received && enc_data_received)
+        {
+            pose_msg.header.stamp = ros::Time::now();
+            // orient_msg.header.stamp = ros::Time::now();
+            // ROS_INFO("x: %f, y: %f", tr_x, tr_y);
 
-        orient_msg.x = q.x();
-        orient_msg.y = q.y();
-        orient_msg.z = q.z();
-        orient_msg.w = q.w();
+            orient_msg.x = q.x();
+            orient_msg.y = q.y();
+            orient_msg.z = q.z();
+            orient_msg.w = q.w();
 
-        pose_msg.pose.position.x = tr_x;
-        pose_msg.pose.position.y = tr_y;
-        pose_msg.pose.orientation = orient_msg;
+            pose_msg.pose.position.x = tr_x;
+            pose_msg.pose.position.y = tr_y;
+            pose_msg.pose.orientation = orient_msg;
 
-        posePub.publish(pose_msg);
+            posePub.publish(pose_msg);
+
+            if (ros::Time::now() - debug_info_prev_time > debug_info_delay) {
+                debug_info_prev_time = ros::Time::now();
+
+                double display_yaw, display_pitch, display_roll;
+                tf::Matrix3x3 m(q);
+                m.getEulerYPR(display_yaw, display_pitch, display_roll);
+                ROS_INFO("Odom pose | X: %f, Y: %f, yaw: %f", tr_x, tr_y, display_yaw * 180 / M_PI);
+            }
+        }
+
         ros::spinOnce();
         loop_rate.sleep();
     }

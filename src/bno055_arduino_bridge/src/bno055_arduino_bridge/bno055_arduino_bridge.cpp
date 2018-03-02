@@ -46,15 +46,15 @@ Bno055ArduinoBridge::Bno055ArduinoBridge(ros::NodeHandle* nodehandle):nh(*nodeha
     prev_euler_pitch = 0.0;
     prev_euler_yaw = 0.0;
 
-    system_status = 0;
-    accel_status = 0;
-    gyro_status = 0;
-    mag_status = 0;
+    system_status = -1;
+    accel_status = -1;
+    gyro_status = -1;
+    mag_status = -1;
 
-    prev_system_status = 0;
-    prev_accel_status = 0;
-    prev_gyro_status = 0;
-    prev_mag_status = 0;
+    prev_system_status = -1;
+    prev_accel_status = -1;
+    prev_gyro_status = -1;
+    prev_mag_status = -1;
 
     debug_info_prev_time = ros::Time::now();
     debug_info_delay = ros::Duration(_debug_info_delay);
@@ -69,7 +69,7 @@ Bno055ArduinoBridge::Bno055ArduinoBridge(ros::NodeHandle* nodehandle):nh(*nodeha
 void Bno055ArduinoBridge::waitForPacket(const string packet)
 {
     ros::Time begin = ros::Time::now();
-    ros::Duration timeout = ros::Duration(10.0);
+    ros::Duration timeout = ros::Duration(15.0);
 
     while ((ros::Time::now() - begin) < timeout)
     {
@@ -231,12 +231,12 @@ void Bno055ArduinoBridge::parseImuMessage()
         serial_buffer.erase(0, pos + MESSAGE_DELIMITER.length());
     }
 
-    if (system_status <= 1) {
-        ROS_WARN("System status is %i! Sensor data may be invalid!!", system_status);
-    }
-
     if (system_status != prev_system_status) {
         ROS_INFO("system status is now: %i. Was %i", system_status, prev_system_status);
+        if (system_status == 0) {
+            ROS_WARN("System status is %i! Sensor data may be invalid!!", system_status);
+        }
+
         prev_system_status = system_status;
     }
     if (accel_status != prev_accel_status) {
@@ -266,18 +266,17 @@ void Bno055ArduinoBridge::parseImuMessage()
     prev_euler_pitch = euler_pitch;
     prev_euler_yaw = euler_yaw;
 
-
     if (ros::Time::now() - debug_info_prev_time > debug_info_delay) {
         debug_info_prev_time = ros::Time::now();
-        ROS_INFO("X: %f, Y: %f, Z: %f", euler_roll * 180 / M_PI, euler_pitch * 180 / M_PI, euler_yaw * 180 / M_PI);
+        ROS_INFO("BNO055 yaw: %f", euler_yaw * 180 / M_PI);
 
-        if (system_status <= 1 || !euler_data_received) {
+        if (system_status == 0 || !euler_data_received) {
             ROS_INFO("No data to publish.");
         }
     }
 
     // Only publish if the sensor is confident in its own values
-    if (system_status > 1 && euler_data_received) {
+    if (system_status > 0 && euler_data_received) {
         eulerToQuat(imu_msg, euler_roll, euler_pitch, euler_yaw);
 
         imu_pub.publish(imu_msg);
