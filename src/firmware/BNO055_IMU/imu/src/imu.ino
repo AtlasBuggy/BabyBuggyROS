@@ -21,7 +21,7 @@
 SerialManager manager;
 
 // Accelerometer & gyroscope only for getting relative orientation, subject to gyro drift
-// Adafruit_BNO055 bno = Adafruit_BNO055(0x08); // OPERATION_MODE_IMUPLUS
+Adafruit_BNO055 bno = Adafruit_BNO055(0x08); // OPERATION_MODE_IMUPLUS
 
 // Accelerometer & magnetometer only for getting relative orientation
 // Adafruit_BNO055 bno = Adafruit_BNO055(0x0a);  // OPERATION_MODE_M4G
@@ -31,6 +31,8 @@ SerialManager manager;
 
 // OPERATION_MODE_NDOF without fast magnetometer calibration
 // Adafruit_BNO055 bno = Adafruit_BNO055(OPERATION_MODE_NDOF_FMC_OFF);
+
+// Adafruit_BNO055 bno = Adafruit_BNO055();
 
 imu::Quaternion quat;
 imu::Vector<3> euler;
@@ -42,7 +44,6 @@ imu::Vector<3> linaccel;
 /* Set the delay between fresh samples */
 #define BNO055_SAMPLERATE_DELAY_MS (20)
 
-Adafruit_BNO055 bno = Adafruit_BNO055(55);
 
 /**************************************************************************/
 /*
@@ -157,7 +158,7 @@ void displaySensorOffsets(const adafruit_bno055_offsets_t &calibData)
 Initialize the BNO055
 */
 /**************************************************************************/
-void initIMU() {
+void initImuCalibration() {
     delay(1000);
     Serial.println("Atlasbuggy BNO055 driver code"); Serial.println("");
 
@@ -273,6 +274,35 @@ void initIMU() {
 
     Serial.println("\n--------------------------------\n");
     delay(500);
+}
+
+void initImu() {
+    delay(1000);
+    Serial.println("Atlasbuggy BNO055 driver code"); Serial.println("");
+
+    /* Initialise the sensor */
+    if (!bno.begin())
+    {
+        /* There was a problem detecting the BNO055 ... check your connections */
+        Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
+        while (1);
+    }
+
+    bno.getSensor(&sensor);
+    Serial.print("BNO055 sensor ID: "); Serial.println(sensor.sensor_id);
+
+    delay(1000);
+
+    /* Display some basic information on this sensor */
+    displaySensorDetails();
+
+    /* Optional: Display current status */
+    displaySensorStatus();
+
+   //Crystal must be configured AFTER loading calibration data into BNO055.
+    bno.setExtCrystalUse(true);
+
+    Serial.println("--------------------------------");
 }
 
 float qw, qx, qy, qz;
@@ -484,7 +514,8 @@ void setup() {
 
   Serial.print("hello!\n");
 
-  initIMU();
+  // initImuCalibration();
+  initImu();
 
   Serial.print("ready!\n");
 }

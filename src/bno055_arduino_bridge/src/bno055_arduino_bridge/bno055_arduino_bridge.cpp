@@ -38,6 +38,10 @@ Bno055ArduinoBridge::Bno055ArduinoBridge(ros::NodeHandle* nodehandle):nh(*nodeha
 
     imu_pub = nh.advertise<sensor_msgs::Imu>("/BNO055", 5);
 
+    initial_euler_roll = 0.0;
+    initial_euler_pitch = 0.0;
+    initial_euler_yaw = 0.0;
+
     euler_roll = 0.0;
     euler_pitch = 0.0;
     euler_yaw = 0.0;
@@ -181,7 +185,12 @@ void Bno055ArduinoBridge::parseImuMessage()
                     case 'z': euler_yaw = M_PI / 180.0 * STR_TO_FLOAT(token.substr(2)); break;
                 }
                 if (euler_roll != 0.0 || euler_pitch != 0.0 || euler_yaw != 0.0) { // sensor will report 0's at the very beginning
-                    euler_data_received = true;
+                    if (!euler_data_received) {
+                        initial_euler_roll = euler_roll;
+                        initial_euler_pitch = euler_pitch;
+                        initial_euler_yaw = euler_yaw;
+                        euler_data_received = true;
+                    }
                 }
                 break;
             // case 'a':
@@ -261,6 +270,10 @@ void Bno055ArduinoBridge::parseImuMessage()
     if (euler_yaw - prev_euler_yaw > JUMP_WARN_THRESHOLD) {
         ROS_WARN("bno055 yaw jumped suddenly (%frad -> %frad)", prev_euler_yaw, euler_yaw);
     }
+
+    euler_roll = std::fmod(euler_roll - initial_euler_roll, 2.0 * M_PI);
+    euler_pitch = std::fmod(euler_pitch - initial_euler_pitch, 2.0 * M_PI);
+    euler_yaw = std::fmod(euler_yaw - initial_euler_yaw, 2.0 * M_PI);
 
     prev_euler_roll = euler_roll;
     prev_euler_pitch = euler_pitch;

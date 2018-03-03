@@ -33,13 +33,17 @@ private:
     bool linaccel_data_received;
     bool quat_data_received;
 
-    float euler_roll;
-    float euler_pitch;
-    float euler_yaw;
+    double initial_euler_roll;
+    double initial_euler_pitch;
+    double initial_euler_yaw;
 
-    float prev_euler_roll;
-    float prev_euler_pitch;
-    float prev_euler_yaw;
+    double euler_roll;
+    double euler_pitch;
+    double euler_yaw;
+
+    double prev_euler_roll;
+    double prev_euler_pitch;
+    double prev_euler_yaw;
 
     int system_status;
     int accel_status;
