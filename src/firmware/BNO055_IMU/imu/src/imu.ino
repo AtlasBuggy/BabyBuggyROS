@@ -287,6 +287,7 @@ void initImu() {
         while (1);
     }
 
+    sensor_t sensor;
     bno.getSensor(&sensor);
     Serial.print("BNO055 sensor ID: "); Serial.println(sensor.sensor_id);
 
