@@ -22,6 +22,8 @@ const size_t Bno055ArduinoBridge::MOTOR_COMMAND_MESSAGE_LEN = 17;
 
 const float Bno055ArduinoBridge::JUMP_WARN_THRESHOLD = 0.5; // radians
 
+// #define USE_SYSTEM_CHECK
+
 long long string_to_int64(string s) {
     stringstream ss(s);
     long long integer = 0;
@@ -242,9 +244,12 @@ void Bno055ArduinoBridge::parseImuMessage()
 
     if (system_status != prev_system_status) {
         ROS_INFO("system status is now: %i. Was %i", system_status, prev_system_status);
+
+        #ifdef USE_SYSTEM_CHECK
         if (system_status == 0) {
             ROS_WARN("System status is %i! Sensor data may be invalid!!", system_status);
         }
+        #endif
 
         prev_system_status = system_status;
     }
@@ -283,13 +288,19 @@ void Bno055ArduinoBridge::parseImuMessage()
         debug_info_prev_time = ros::Time::now();
         ROS_INFO("BNO055 yaw: %f", euler_yaw * 180 / M_PI);
 
+        #ifdef USE_SYSTEM_CHECK
         if (system_status == 0 || !euler_data_received) {
             ROS_INFO("No data to publish.");
         }
+        #endif
     }
 
     // Only publish if the sensor is confident in its own values
+    #ifdef USE_SYSTEM_CHECK
     if (system_status > 0 && euler_data_received) {
+    #else
+    if (euler_data_received) {
+    #endif
         eulerToQuat(imu_msg, euler_roll, euler_pitch, euler_yaw);
 
         imu_pub.publish(imu_msg);
