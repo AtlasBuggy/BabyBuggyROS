@@ -1,0 +1,9 @@
+<launch>
+  <node pkg="amcl" type="amcl" name="amcl">
+    <param name="use_map_topic" value="true"/>
+    <param name="update_min_d" value="0.1" />
+    <param name="update_min_a" value="0.1" />
+    <param name="kld_err" value="0.10" />
+    <param name="max_particles" value="1000" />
+  </node>
+</launch>
