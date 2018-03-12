@@ -11,6 +11,7 @@
 #include "std_msgs/Int64.h"
 #include "std_msgs/Int16MultiArray.h"
 #include "gps_common/GPSFix.h"
+#include "sensor_msgs/NavSatFix.h"
 #include "serial/serial.h"
 #include <math.h>
 #include <iostream>
@@ -25,6 +26,7 @@ private:
 	ros::NodeHandle nh;
 
 	ros::Publisher gps_pub;
+	ros::Publisher navsat_pub;
 
 	string serial_port;
 	int serial_baud;
@@ -36,6 +38,7 @@ private:
 	ros::Duration debug_info_delay;
 
 	gps_common::GPSFix gps_msg;
+	sensor_msgs::NavSatFix navsat_msg;
 	void parseGPSMessage();
 
 	int days;

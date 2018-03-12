@@ -44,6 +44,7 @@ GPSArduinoBridge::GPSArduinoBridge(ros::NodeHandle* nodehandle) : nh(*nodehandle
 	nh.param<int>("serial_baud", serial_baud, 9600);
 
 	gps_pub = nh.advertise<gps_common::GPSFix>("/AdafruitGPS", 5);
+	navsat_pub = nh.advertise<sensor_msgs::NavSatFix>("/GpsNavSat", 5);
 
 	years = 0;
 	months = 0;
@@ -137,6 +138,9 @@ void GPSArduinoBridge::parseGPSMessage()
 	gps_msg.header.frame_id = GPS_FRAME_ID;
 	gps_msg.header.stamp = ros::Time::now();
 
+	navsat_msg.header.frame_id = GPS_FRAME_ID;
+	navsat_msg.header.stamp = ros::Time::now();
+
 	size_t pos = 0;
 	string token;
 
@@ -164,9 +168,11 @@ void GPSArduinoBridge::parseGPSMessage()
 					case 'f':
 						if (STR_TO_INT(token.substr(2)) > 0) {
 							gps_msg.status.status = gps_msg.status.STATUS_FIX;
+							navsat_msg.status.status = navsat_msg.status.STATUS_FIX;
 						}
 						else {
 							gps_msg.status.status = gps_msg.status.STATUS_NO_FIX;
+							navsat_msg.status.status = navsat_msg.status.STATUS_NO_FIX;
 						}
 						break;
 					case 'q': ROS_DEBUG("fix quality: %lld", STR_TO_INT(token.substr(2))); break;
@@ -174,14 +180,23 @@ void GPSArduinoBridge::parseGPSMessage()
 				break;
 			case 'g':
 				switch (token.at(1)) {
-					case 'a': gps_msg.latitude = STR_TO_FLOAT(token.substr(2)); break;
-					case 'o': gps_msg.longitude = STR_TO_FLOAT(token.substr(2)); break;
+					case 'a':
+						gps_msg.latitude = STR_TO_FLOAT(token.substr(2));
+						navsat_msg.latitude = gps_msg.latitude;
+						break;
+					case 'o':
+						gps_msg.longitude = STR_TO_FLOAT(token.substr(2));
+						navsat_msg.longitude = gps_msg.longitude;
+						break;
 				}
 				break;
 			case 'x':
 				switch (token.at(1)) {
 					case 's': gps_msg.speed = STR_TO_FLOAT(token.substr(2)) * 1000; break;  // convert km/s to m/s
-					case 'l': gps_msg.altitude = STR_TO_FLOAT(token.substr(2)); break;
+					case 'l':
+						gps_msg.altitude = STR_TO_FLOAT(token.substr(2));
+						navsat_msg.altitude = gps_msg.altitude;
+						break;
 					case 'm': gps_msg.status.satellites_used = STR_TO_INT(token.substr(2)); break;
 					case 'h': gps_msg.hdop = STR_TO_INT(token.substr(2)); break;
 				}
@@ -196,5 +211,6 @@ void GPSArduinoBridge::parseGPSMessage()
 
 	gps_msg.time = to_unix_time(years, months, days, hours, minutes, seconds, milliseconds);
 
+	navsat_pub.publish(navsat_msg);
 	gps_pub.publish(gps_msg);
 }
