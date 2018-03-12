@@ -27,7 +27,9 @@ SoftwareSerial gpsSerial(3, 2);
 
 //HardwareSerial gpsSerial = Serial1;
 
-SerialManager manager;
+#define GPS_BAUD_RATE 9600
+
+SerialManager manager(GPS_BAUD_RATE);  // USB serial baud must match GPS baud to work
 
 Adafruit_GPS GPS(&gpsSerial);
 
@@ -45,7 +47,6 @@ uint32_t timer = millis();
 boolean usingInterrupt = false;
 void useInterrupt(boolean); // Func prototype keeps Arduino 0023 happy
 
-#define GPS_BAUD_RATE 9600
 
 void initGPS(){
 	// 9600 NMEA is the default baud rate for Adafruit MTK GPS's- some use 4800
@@ -132,8 +133,10 @@ void updateGPS(){
 		// so be very wary if using OUTPUT_ALLDATA and trying to print out data
 		//Serial.println(GPS.lastNMEA());   // this also sets the newNMEAreceived() flag to false
 
-		if (!GPS.parse(GPS.lastNMEA()))     // this also sets the newNMEAreceived() flag to false
+		if (!GPS.parse(GPS.lastNMEA())) {     // this also sets the newNMEAreceived() flag to false
+			Serial.print("gps\tnop\n");
 			return;          // we can fail to parse a sentence in which case we should just wait for another
+		}
 	}
 
 	// if millis() or timer wraps around, we'll just reset it
@@ -141,45 +144,35 @@ void updateGPS(){
 
 	// approximately every "gps_update_delay" seconds or so, print out the current stats
 	if (millis() - timer > gps_update_delay) {
-		Serial.print("gps\t");
 		timer = millis();     // reset the timer
 
-		Serial.print("t");
-		Serial.print(GPS.hour, DEC); Serial.print(':');
-		Serial.print(GPS.minute, DEC); Serial.print(':');
-		Serial.print(GPS.seconds, DEC); Serial.print(':');
-		Serial.print(GPS.milliseconds);
+		Serial.print("gps");
+		Serial.print("\ttd"); Serial.print(GPS.day, DEC);
+		Serial.print("\ttb"); Serial.print(GPS.month, DEC);
+		Serial.print("\tty20"); Serial.print(GPS.year, DEC);  // assuming this won"t be around for 100 years
+		Serial.print("\ttH"); Serial.print(GPS.hour, DEC);
+		Serial.print("\ttM"); Serial.print(GPS.minute, DEC);
+		Serial.print("\ttS"); Serial.print(GPS.seconds, DEC);
+		Serial.print("\tts"); Serial.print(GPS.milliseconds);
 
-		Serial.print("\td");
-		Serial.print(GPS.day, DEC); Serial.print('/');
-		Serial.print(GPS.month, DEC); Serial.print("/20");     // assuming this won't be around for 100 years
-		Serial.print(GPS.year, DEC);
-
-		Serial.print("\tf");
-		Serial.print((int)GPS.fix); Serial.print(",");
-		Serial.print((int)GPS.fixquality);
+		Serial.print("\tff"); Serial.print((int)GPS.fix);
+		Serial.print("\tfq"); Serial.print((int)GPS.fixquality);
 		if (GPS.fix) {
-			Serial.print("\tl");
-			Serial.print(GPS.latitude, 6); Serial.print(",");
-			Serial.print(GPS.lat); Serial.print(",");
-			Serial.print(GPS.longitude, 6); Serial.print(",");
-			Serial.print(GPS.lon);
+			// Serial.print("\tla"); Serial.print(GPS.latitude, 6);
+			// Serial.print("\tlt"); Serial.print(GPS.lat);
+			// Serial.print("\tlo"); Serial.print(GPS.longitude, 6);
+			// Serial.print("\tln"); Serial.print(GPS.lon);
 
-			Serial.print("\tg");
-			Serial.print(GPS.latitudeDegrees, 6);
-			Serial.print(",");
-			Serial.print(GPS.longitudeDegrees, 6);
+			Serial.print("\tga"); Serial.print(GPS.latitudeDegrees, 6);
+			Serial.print("\tgo"); Serial.print(GPS.longitudeDegrees, 6);
 
-			Serial.print("\tx");
-			Serial.print(GPS.speed); Serial.print(",");
-			Serial.print(GPS.angle); Serial.print(",");
-			Serial.print(GPS.altitude); Serial.print(",");
-			Serial.print((int)GPS.satellites);
-			Serial.print('\n');
+			Serial.print("\txs"); Serial.print(GPS.speed);
+			// Serial.print("\txa"); Serial.print(GPS.angle);
+			Serial.print("\txl"); Serial.print(GPS.altitude);
+			Serial.print("\txm"); Serial.print((int)GPS.satellites);
+			Serial.print("\txh"); Serial.print(GPS.HDOP);
 		}
-		else {
-			Serial.print('\n');
-		}
+		Serial.print("\n");
 	}
 }
 
@@ -191,26 +184,27 @@ void setup()
 	initGPS();
 	Serial.print("ready!\n");
 
-	delay(50);
-	GPS.standby();
-	delay(50);
+	useInterrupt(true);
+	GPS.wakeup();
+
+	// delay(50);
+	// GPS.standby();
+	// delay(50);
 }
 
 void loop()  // run over and over again
 {
 	if(manager.available()) {
-		int status = manager.readSerial();
-		if (status == 2) {          // start event
-			useInterrupt(true);
-			GPS.wakeup();
-		}
-		else if (status == 1) {     // stop event
-			GPS.standby();
-			useInterrupt(false);
-		}
-		else if (status == 0) {    // user command
-			useInterrupt(false);
-		}
+		manager.readSerial();
+		// int status = manager.readSerial();
+		// if (status == 2) {          // start event
+		// 	useInterrupt(true);
+		// 	GPS.wakeup();
+		// }
+		// else if (status == 1) {     // stop event
+		// 	GPS.standby();
+		// 	useInterrupt(false);
+		// }
 	}
 
 	if(!manager.isPaused()) {

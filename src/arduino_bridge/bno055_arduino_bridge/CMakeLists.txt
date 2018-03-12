@@ -109,7 +109,7 @@ catkin_package(
     INCLUDE_DIRS include
     LIBRARIES bno055_arduino_bridge
     CATKIN_DEPENDS geometry_msgs roscpp roslaunch sensor_msgs serial
-    DEPENDS system_lib
+    # DEPENDS system_lib
 )
 
 ###########

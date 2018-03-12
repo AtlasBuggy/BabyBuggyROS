@@ -175,7 +175,7 @@ void Bno055ArduinoBridge::parseImuMessage()
     {
         token = serial_buffer.substr(0, pos);
         if (token.size() == 0) {
-            break;
+            return;
         }
 
         switch (token.at(0)) {
