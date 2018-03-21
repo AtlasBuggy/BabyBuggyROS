@@ -1,9 +1,5 @@
 #include <odometry/odometry.h>
 
-const string ODOM_NODE_NAME = "odometry";
-const string ODOM_FRAME_ID = "odom";
-const string ODOM_CHILD_FRAME_ID = "base_link";
-
 Odometry::Odometry(ros::NodeHandle* nodehandle):nh(*nodehandle)
 {
   // setup subscribers
@@ -23,8 +19,8 @@ Odometry::Odometry(ros::NodeHandle* nodehandle):nh(*nodehandle)
   q.setRPY(0, 0, 0);
 
   // initialize odom_msg
-  odom_msg.header.frame_id = Odometry::ODOM_FRAME_ID;
-  odom_msg.child_frame_id = Odometry::ODOM_CHILD_FRAME_ID;
+  odom_msg.header.frame_id = "odom";
+  odom_msg.child_frame_id = "base_link";
 }
 
 void Odometry::IMUCallback(const sensor_msgs::Imu& msg)

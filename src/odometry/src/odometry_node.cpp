@@ -2,7 +2,7 @@
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, Odometry::ODOM_NODE_NAME);
+    ros::init(argc, argv, "odometry");
     ros::NodeHandle nh("~");
 
     Odometry broadcaster(&nh);
