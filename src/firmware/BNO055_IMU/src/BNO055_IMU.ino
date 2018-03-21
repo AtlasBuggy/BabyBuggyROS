@@ -8,20 +8,22 @@
 #include <EEPROM.h>
 
 /* ----------------------- *
- * BNO055 global variables *
- * ----------------------- */
+* BNO055 global variables *
+* ----------------------- */
+
+// #define USE_CALIBRATION
 
 #define INCLUDE_FILTERED_DATA
 // #define USE_QUATERNIONS
 // #define INCLUDE_MAG_DATA
-// #define INCLUDE_GYRO_DATA
+#define INCLUDE_GYRO_DATA
 // #define INCLUDE_ACCEL_DATA
-// #define INCLUDE_LINACCEL_DATA
+#define INCLUDE_LINACCEL_DATA
 
 SerialManager manager;
 
 // Accelerometer & gyroscope only for getting relative orientation, subject to gyro drift
-Adafruit_BNO055 bno = Adafruit_BNO055(0x08); // OPERATION_MODE_IMUPLUS
+// Adafruit_BNO055 bno = Adafruit_BNO055(0x08); // OPERATION_MODE_IMUPLUS
 
 // Accelerometer & magnetometer only for getting relative orientation
 // Adafruit_BNO055 bno = Adafruit_BNO055(0x0a);  // OPERATION_MODE_M4G
@@ -32,7 +34,7 @@ Adafruit_BNO055 bno = Adafruit_BNO055(0x08); // OPERATION_MODE_IMUPLUS
 // OPERATION_MODE_NDOF without fast magnetometer calibration
 // Adafruit_BNO055 bno = Adafruit_BNO055(OPERATION_MODE_NDOF_FMC_OFF);
 
-// Adafruit_BNO055 bno = Adafruit_BNO055();
+Adafruit_BNO055 bno = Adafruit_BNO055();
 
 imu::Quaternion quat;
 imu::Vector<3> euler;
@@ -46,9 +48,9 @@ imu::Vector<3> linaccel;
 
 /**************************************************************************/
 /*
-    Displays some basic information on this sensor from the unified
-    sensor API sensor_t type (see Adafruit_Sensor for more information)
-    */
+Displays some basic information on this sensor from the unified
+sensor API sensor_t type (see Adafruit_Sensor for more information)
+*/
 /**************************************************************************/
 void displaySensorDetails(void)
 {
@@ -68,8 +70,8 @@ void displaySensorDetails(void)
 
 /**************************************************************************/
 /*
-    Display some basic info about the sensor status
-    */
+Display some basic info about the sensor status
+*/
 /**************************************************************************/
 void displaySensorStatus(void)
 {
@@ -92,8 +94,8 @@ void displaySensorStatus(void)
 
 /**************************************************************************/
 /*
-    Display sensor calibration status
-    */
+Display sensor calibration status
+*/
 /**************************************************************************/
 void displayCalStatus(void)
 {
@@ -124,8 +126,8 @@ void displayCalStatus(void)
 
 /**************************************************************************/
 /*
-    Display the raw calibration offset and radius data
-    */
+Display the raw calibration offset and radius data
+*/
 /**************************************************************************/
 void displaySensorOffsets(const adafruit_bno055_offsets_t &calibData)
 {
@@ -214,15 +216,18 @@ void initImuCalibration() {
     /* Optional: Display current status */
     displaySensorStatus();
 
-   //Crystal must be configured AFTER loading calibration data into BNO055.
+    //Crystal must be configured AFTER loading calibration data into BNO055.
     bno.setExtCrystalUse(true);
 
     sensors_event_t event;
     bno.getEvent(&event);
     if (foundCalib){
-        Serial.println("Move sensor slightly to calibrate magnetometers");
+        Serial.println("Move sensor slightly to calibrate magnetometers. Press any key to escape.");
         while (!bno.isFullyCalibrated())
         {
+            if (Serial.available()) {
+                break;
+            }
             bno.getEvent(&event);
             delay(BNO055_SAMPLERATE_DELAY_MS);
         }
@@ -279,6 +284,20 @@ void initImu() {
     delay(1000);
     Serial.println("Atlasbuggy BNO055 driver code"); Serial.println("");
 
+    int eeAddress = 0;
+    long bnoID;
+
+    sensor_t sensor;
+    bno.getSensor(&sensor);
+
+    EEPROM.get(eeAddress, bnoID);
+
+    if (bnoID == sensor.sensor_id)
+    {
+        Serial.println("\nCalibration Data for this sensor exists in EEPROM. Erasing it.");
+        clearEeprom();
+    }
+
     /* Initialise the sensor */
     if (!bno.begin())
     {
@@ -287,8 +306,6 @@ void initImu() {
         while (1);
     }
 
-    sensor_t sensor;
-    bno.getSensor(&sensor);
     Serial.print("BNO055 sensor ID: "); Serial.println(sensor.sensor_id);
 
     delay(1000);
@@ -299,10 +316,30 @@ void initImu() {
     /* Optional: Display current status */
     displaySensorStatus();
 
-   //Crystal must be configured AFTER loading calibration data into BNO055.
+    //Crystal must be configured AFTER loading calibration data into BNO055.
     bno.setExtCrystalUse(true);
 
     Serial.println("--------------------------------");
+}
+
+void clearEeprom()
+{
+    Serial.println("Clearing EEPROM");
+    pinMode(13, OUTPUT);
+    bool state = LOW;
+
+    for (size_t i = 0 ; i < EEPROM.length() ; i++) {
+        EEPROM.write(i, 0);
+
+        if (i % 15 == 0) {
+            state = !state;
+            digitalWrite(13, state);
+        }
+    }
+
+    // turn the LED on when we're done
+    digitalWrite(13, LOW);
+    Serial.println("EEPROM cleared!!");
 }
 
 float qw, qx, qy, qz;
@@ -510,39 +547,45 @@ void updateIMU() {
 
 
 void setup() {
-  manager.begin();
+    // manager.begin();
+    Serial.begin(115200);
 
-  Serial.print("hello!\n");
+    Serial.print("hello!\n");
 
-  // initImuCalibration();
-  initImu();
+    #ifdef USE_CALIBRATION
+    initImuCalibration();
+    #else
+    initImu();
+    #endif
 
-  Serial.print("ready!\n");
+    Serial.print("ready!\n");
 }
 
 void loop() {
-  if (manager.available()) {
-    manager.readSerial();
-    // int status = manager.readSerial();
-    // String command = manager.getCommand();
-    //
-    // if (status == 2)  // start event
-    // {
-    //
-    // }
-    // else if (status == 1)  // stop event
-    // {
-    //
-    // }
-    // else if (status == 0)  // user command
-    // {
-    //
-    // }
-  }
+    if (manager.available()) {
+        int status = manager.readSerial();
+        String command = manager.getCommand();
 
-  if (!manager.isPaused()) {
-    updateIMU();
-    // 100Hz update rate for imu
-    delay(BNO055_SAMPLERATE_DELAY_MS);
-  }
+        // if (status == 2)  // start event
+        // {
+        //
+        // }
+        // else if (status == 1)  // stop event
+        // {
+        //
+        // }
+        if (status == 0)  // user command
+        {
+            if (command.equals("clear")) {
+                clearEeprom();
+            }
+        }
+    }
+
+    if (!manager.isPaused()) {
+        updateIMU();
+
+        // update rate for imu
+        delay(BNO055_SAMPLERATE_DELAY_MS);
+    }
 }
