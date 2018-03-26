@@ -1,19 +1,24 @@
 <launch>
+  <param name="use_sim_time" value="true"/>
+  
   <node name="gmapping" pkg="gmapping" type="slam_gmapping" args="scan:=scan">
-      <param name="~map_update_interval" value="0.1"/>
+      <param name="~map_update_interval" value="0.01"/>
       <param name="~temporalUpdate" value="0.01"/>
       <!-- <param name="~throttle_scans" value="5"/> -->
       <param name="~srr" value="0"/>
       <param name="~srt" value="0.01"/>
       <param name="~str" value="0.01"/>
       <param name="~stt" value="0.01"/>
-      <!-- <param name="~maxUrange" value="35"/> -->
+      <!-- <param name="minimumScore" value="50"/> -->
+      <param name="~maxUrange" value="32"/>
       <!-- <param name="~delta" value="0.01" /> -->
-      <!-- <param name="~iterations" value="5" /> -->
-      <!-- <param name="~particles" value="1"/> -->
+      <!-- <param name="~iterations" value="10" /> -->
+      <!-- <param name="~particles" value="100"/> -->
       <!-- <param name="~lasamplerange" value="0.005"/> -->
       <!-- <param name="~lasamplestep" value="0.005"/> -->
       <!-- <param name="~angularUpdate" value="1"/> -->
       <!-- <param name="~linearUpdate" value="-1"/> -->
     </node>
+
+    <node name="visualization" pkg="rviz" type="rviz" />
 </launch>

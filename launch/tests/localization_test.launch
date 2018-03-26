@@ -1,0 +1,8 @@
+<launch>
+  <node name="navsat_transform" pkg="robot_localization" type="navsat_transform_node">
+    <param name="wait_for_datum" value="true"/>
+    <param name="zero_altitude" value="true"/>
+  </node>
+
+  <node name="odometry" pkg="odometry" type="odometry_node"/>
+</launch>

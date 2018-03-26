@@ -19,6 +19,7 @@ private:
   ros::Subscriber imu_sub;
   ros::Subscriber enc_sub;
   ros::Publisher odom_pub;
+  ros::Publisher gps_pub;
 
   ros::ServiceClient client;
   robot_localization::SetDatum srv;
@@ -34,7 +35,7 @@ private:
   void GPSCallback(const sensor_msgs::NavSatFix& msg);
   void IMUCallback(const sensor_msgs::Imu& msg);
   void EncoderCallback(const std_msgs::Float64& msg);
-  
+
 public:
   Odometry(ros::NodeHandle* nodehandle);
 

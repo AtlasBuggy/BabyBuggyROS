@@ -8,7 +8,8 @@ Odometry::Odometry(ros::NodeHandle* nodehandle):nh(*nodehandle)
   enc_sub = nh.subscribe("/encoder", 1000, &Odometry::EncoderCallback, this);
 
   // setup odom publisher
-  odom_pub = nh.advertise<nav_msgs::Odometry>("robot_odom", 1000);
+  odom_pub = nh.advertise<nav_msgs::Odometry>("odometry/filtered", 1000);
+  gps_pub = nh.advertise<sensor_msgs::NavSatFix>("gps/fix", 1000);
 
   // setup client for SetDatum service
   client = nh.serviceClient<robot_localization::SetDatum>("SetDatum");
@@ -63,6 +64,8 @@ void Odometry::IMUCallback(const sensor_msgs::Imu& msg)
 
 void Odometry::GPSCallback(const sensor_msgs::NavSatFix& msg)
 {
+  gps_pub.publish(msg);
+
   if (msg.status.status == msg.status.STATUS_FIX){
     srv.request.geo_pose.position.latitude = msg.latitude;
     srv.request.geo_pose.position.longitude = msg.longitude;

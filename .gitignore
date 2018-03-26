@@ -41,6 +41,8 @@ qtcreator-*
 /planning/docs
 /planning/src
 
+.ftpconfig
+
 # ORB_SLAM2
 CMakeLists.txt.user
 external_src/ORB_SLAM2/Examples/Monocular/mono_euroc
