@@ -8,11 +8,13 @@ Odometry::Odometry(ros::NodeHandle* nodehandle):nh(*nodehandle)
   enc_sub = nh.subscribe("/encoder", 1000, &Odometry::EncoderCallback, this);
 
   // setup odom publisher
-  odom_pub = nh.advertise<nav_msgs::Odometry>("odometry/filtered", 1000);
-  gps_pub = nh.advertise<sensor_msgs::NavSatFix>("gps/fix", 1000);
+  odom_pub = nh.advertise<nav_msgs::Odometry>("/odometry/filtered", 1000);
+  gps_pub = nh.advertise<sensor_msgs::NavSatFix>("/gps/fix", 1000);
+  // imu_pub = nh.advertise<sensor_msgs::Imu>("/imu/data", 1000);
 
   // setup client for SetDatum service
-  client = nh.serviceClient<robot_localization::SetDatum>("SetDatum");
+  client = nh.serviceClient<robot_localization::SetDatum>("/datum");
+  datum_set = false;
 
   // initialize odometry
   odom_x = 0;
@@ -26,6 +28,17 @@ Odometry::Odometry(ros::NodeHandle* nodehandle):nh(*nodehandle)
 
 void Odometry::IMUCallback(const sensor_msgs::Imu& msg)
 {
+  static tf::TransformBroadcaster br;
+  tf::Transform static_trans_gps;
+  tf::Quaternion q_tmp;
+
+  q_tmp.setRPY(0, 0, 0);
+  static_trans_gps.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
+  static_trans_gps.setRotation(q_tmp);
+  br.sendTransform(tf::StampedTransform(static_trans_gps, ros::Time::now(), "base_link", "GPS"));
+
+  // imu_pub.publish(msg);
+
   tf::Quaternion tmp;
 
   tmp.setValue(
@@ -57,6 +70,8 @@ void Odometry::IMUCallback(const sensor_msgs::Imu& msg)
     odom_msg.pose.covariance[i] = 0;
   }
 
+  // q.setRPY(roll, pitch, yaw);
+
   odom_pub.publish(odom_msg);
 
   imu_data_received = true;
@@ -66,15 +81,30 @@ void Odometry::GPSCallback(const sensor_msgs::NavSatFix& msg)
 {
   gps_pub.publish(msg);
 
-  if (msg.status.status == msg.status.STATUS_FIX){
+  if ((msg.status.status == msg.status.STATUS_FIX) && (!datum_set)){
     srv.request.geo_pose.position.latitude = msg.latitude;
     srv.request.geo_pose.position.longitude = msg.longitude;
     srv.request.geo_pose.position.altitude = msg.altitude;
+
+    q.setRPY(roll, pitch, yaw-M_PI);
     srv.request.geo_pose.orientation.x = q.x();
     srv.request.geo_pose.orientation.y = q.y();
     srv.request.geo_pose.orientation.z = q.z();
     srv.request.geo_pose.orientation.w = q.w();
-    client.call(srv);
+    q.setRPY(roll, pitch, -yaw);
+
+    if(client.call(srv)){
+      ROS_INFO("SUCCESS\n");
+    }
+    else{
+      ROS_INFO("OH NO\n");
+    }
+
+    datum_set = true;
+    ROS_INFO("DATUM SET\n");
+  }
+  if ((msg.status.status != msg.status.STATUS_FIX) && (datum_set)){
+    datum_set = false;
   }
 }
 

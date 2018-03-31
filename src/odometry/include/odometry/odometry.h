@@ -8,6 +8,7 @@
 #include "nav_msgs/Odometry.h"
 #include "robot_localization/SetDatum.h"
 #include <tf/transform_datatypes.h>
+#include <tf/transform_broadcaster.h>
 
 using namespace std;
 
@@ -20,10 +21,13 @@ private:
   ros::Subscriber enc_sub;
   ros::Publisher odom_pub;
   ros::Publisher gps_pub;
+  ros::Publisher imu_pub;
 
   ros::ServiceClient client;
   robot_localization::SetDatum srv;
   nav_msgs::Odometry odom_msg;
+
+  bool datum_set;
 
   float odom_x, odom_y;
   double roll, pitch, yaw;
