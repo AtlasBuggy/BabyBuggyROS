@@ -1,4 +1,4 @@
-#include <odometry/odometry.h>
+#include <robot_tfs/robot_tfs.h>
 
 const string RobotTFs::BASE_LINK_FRAME_NAME = "base_link";
 const string RobotTFs::ODOM_FRAME_NAME = "odom";
@@ -24,7 +24,7 @@ RobotTFs::RobotTFs(ros::NodeHandle* nodehandle):nh(*nodehandle)
     enc_sub = nh.subscribe("/encoder", 1000, &RobotTFs::EncoderCallback, this);
 
     // setup odom publisher
-    odom_pub = nh.advertise<nav_msgs::RobotTFs>("/naive_odom", 1000);
+    odom_pub = nh.advertise<nav_msgs::Odometry>("/naive_odom", 1000);
 
     // setup client for SetDatum service
     client = nh.serviceClient<robot_localization::SetDatum>("/datum");
@@ -90,9 +90,9 @@ void RobotTFs::IMUCallback(const sensor_msgs::Imu& msg)
         odometry_transform.setOrigin(tf::Vector3(odom_x, odom_y, 0.0));
         odometry_transform.setRotation(current_imu_orientation);
 
-        transform_broadcaster.sendTransform(tf::StampedTransform(odometry_transform, ros::Time::now(), ODOM_FRAME_NAME, IMU_FRAME_NAME));
+        tf_broadcaster.sendTransform(tf::StampedTransform(odometry_transform, ros::Time::now(), ODOM_FRAME_NAME, IMU_FRAME_NAME));
 
-        odom_pub.header.stamp = ros::Time::now();
+        odom_msg.header.stamp = ros::Time::now();
 
         // fill out and publish odom data
         odom_msg.pose.pose.position.x = odom_x;

@@ -1,9 +1,11 @@
 #include <gps_arduino_bridge/gps_arduino_bridge.h>
 
+// string parsing macros
 #define STR_TO_FLOAT(string)  strtof((string).c_str(), 0)
 #define STR_TO_INT(string)  string_to_int64(string)
 
-const string GPSArduinoBridge::GPS_FRAME_ID = "GPS";
+// Constant definitions
+const string GPSArduinoBridge::GPS_FRAME_ID = "adafruit_gps";
 const string GPSArduinoBridge::CHILD_FRAME_ID = "base_link";
 
 const string GPSArduinoBridge::NODE_NAME = "gps_arduino_bridge";
@@ -17,6 +19,7 @@ const string GPSArduinoBridge::GPS_MESSAGE_HEADER = "gps";
 const string GPSArduinoBridge::MESSAGE_DELIMITER = "\t";
 
 
+// convert a string to a 64-bit integer
 long long string_to_int64(string s) {
 	stringstream ss(s);
 	long long integer = 0;
@@ -24,6 +27,7 @@ long long string_to_int64(string s) {
 	return integer;
 }
 
+// translate scalar values into a unix timestamp object
 float to_unix_time(int years, int months, int days, int hours, int minutes, int seconds, int milliseconds)
 {
 	if (years == 0 || months == 0 || days == 0) {
@@ -40,6 +44,8 @@ float to_unix_time(int years, int months, int days, int hours, int minutes, int 
 GPSArduinoBridge::GPSArduinoBridge(ros::NodeHandle* nodehandle) : nh(*nodehandle)
 {
 	float _debug_info_delay;
+
+	// pull parameters from the launch file
 	nh.param<string>("serial_port", serial_port, "usb-Silicon_Labs_CP2104_USB_to_UART_Bridge_Controller_00FEBA3D-if00-port0");
 	nh.param<int>("serial_baud", serial_baud, 9600);
 

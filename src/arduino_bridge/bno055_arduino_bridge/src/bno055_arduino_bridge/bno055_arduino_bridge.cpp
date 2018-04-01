@@ -1,9 +1,13 @@
 #include <bno055_arduino_bridge/bno055_arduino_bridge.h>
 
+// string parsing macros
 #define STR_TO_FLOAT(string)  strtof((string).c_str(), 0)
 #define STR_TO_INT(string)  string_to_int64(string)
 
-const string Bno055ArduinoBridge::IMU_FRAME_ID = "Imu";
+// #define USE_SYSTEM_CHECK  // Use the system's status value to determine if data should be published
+
+// Constant definitions
+const string Bno055ArduinoBridge::IMU_FRAME_ID = "bno055_imu";
 const string Bno055ArduinoBridge::CHILD_FRAME_ID = "base_link";
 
 const string Bno055ArduinoBridge::NODE_NAME = "bno055_arduino_bridge";
@@ -16,14 +20,9 @@ const string Bno055ArduinoBridge::STOP_COMMAND = "s" + PACKET_END;
 const string Bno055ArduinoBridge::IMU_MESSAGE_HEADER = "imu";
 const string Bno055ArduinoBridge::MESSAGE_DELIMITER = "\t";
 
-const string Bno055ArduinoBridge::ENCODER_MESSAGE_HEADER = "e";
-
-const size_t Bno055ArduinoBridge::MOTOR_COMMAND_MESSAGE_LEN = 17;
-
 const float Bno055ArduinoBridge::JUMP_WARN_THRESHOLD = 0.5; // radians
 
-// #define USE_SYSTEM_CHECK
-
+// convert a string to a 64-bit integer
 long long string_to_int64(string s) {
     stringstream ss(s);
     long long integer = 0;
@@ -34,6 +33,8 @@ long long string_to_int64(string s) {
 Bno055ArduinoBridge::Bno055ArduinoBridge(ros::NodeHandle* nodehandle):nh(*nodehandle)
 {
     float _debug_info_delay;
+
+    // pull parameters from the launch file
     nh.param<string>("serial_port", serial_port, "usb-Silicon_Labs_CP2104_USB_to_UART_Bridge_Controller_00FEBA3D-if00-port0");
     nh.param<float>("debug_info_delay", _debug_info_delay, 1.0);
     nh.param<int>("serial_baud", serial_baud, 115200);
@@ -110,6 +111,7 @@ void Bno055ArduinoBridge::eulerToQuat(sensor_msgs::Imu &imu_msg, float roll, flo
 
 int Bno055ArduinoBridge::run()
 {
+    // attempt to open the serial port
     try
     {
         serial_ref.setPort(serial_port);
@@ -125,22 +127,27 @@ int Bno055ArduinoBridge::run()
         return -1;
     }
 
+    // wait for startup messages from the microcontroller
     waitForPacket(HELLO_MESSAGE);
     waitForPacket(READY_MESSAGE);
 
+    // tell the microcontroller to start
     serial_ref.write(START_COMMAND);
 
-    ros::Rate clock_rate(60);  // 60 Hz
+    ros::Rate clock_rate(60);  // run loop at 60 Hz
 
     while (ros::ok())
     {
+        // let ROS process any events
         ros::spinOnce();
         clock_rate.sleep();
 
+        // if the serial buffer has data, parse it
         if (serial_ref.available())
         {
             serial_buffer = serial_ref.readline();
 
+            // If the serial buffer starts with '-', the microcontroller is relaying a message for the user
             if (serial_buffer.at(0) == '-') {
                 ROS_WARN("message: %s", serial_buffer.substr(1).c_str());
                 continue;
@@ -156,6 +163,7 @@ int Bno055ArduinoBridge::run()
         }
     }
 
+    // tell the microcontroller to stop
     serial_ref.write(STOP_COMMAND);
 
     return 0;
@@ -166,18 +174,23 @@ void Bno055ArduinoBridge::parseImuMessage()
     // strip off header and the trailing newline character
     serial_buffer = serial_buffer.substr(IMU_MESSAGE_HEADER.size() + 1, serial_buffer.size()-1);
 
+    // set message header with frame name and time
     imu_msg.header.frame_id = IMU_FRAME_ID;
     imu_msg.header.stamp = ros::Time::now();
 
+    // loop through the buffer until the end is reached
+    // pos is the next MESSAGE_DELIMITER character
     size_t pos = 0;
     string token;
     while ((pos = serial_buffer.find(MESSAGE_DELIMITER)) != string::npos)
     {
+        // extract the next segment of data (serial_buffer will be erased up to pos at the end)
         token = serial_buffer.substr(0, pos);
         if (token.size() == 0) {
             return;
         }
 
+        // parse differently based on the first character of the segment (e.g. 'ex6.102' is the euler angle in the x axis)
         switch (token.at(0)) {
             case 't': ROS_DEBUG("imu arduino time: %s", token.substr(1).c_str()); break;
             case 'e':
@@ -243,9 +256,11 @@ void Bno055ArduinoBridge::parseImuMessage()
                 break;
         }
 
+        // erase up to the end of the current token plus the delimiter character
         serial_buffer.erase(0, pos + MESSAGE_DELIMITER.length());
     }
 
+    // warn the user if the IMU's status has changed
     if (system_status != prev_system_status) {
         ROS_INFO("system status is now: %i. Was %i", system_status, prev_system_status);
 
@@ -270,6 +285,7 @@ void Bno055ArduinoBridge::parseImuMessage()
         prev_mag_status = mag_status;
     }
 
+    // Warn the user if the IMU's euler angles have jumped above the threshold since the last check
     if (euler_roll - prev_euler_roll > JUMP_WARN_THRESHOLD) {
         ROS_WARN("bno055 roll jumped suddenly (%frad -> %frad)", prev_euler_roll, euler_roll);
     }
@@ -284,6 +300,7 @@ void Bno055ArduinoBridge::parseImuMessage()
     prev_euler_pitch = euler_pitch;
     prev_euler_yaw = euler_yaw;
 
+    // Report the IMU's yaw value every 'debug_info_delay' amount of time
     if (ros::Time::now() - debug_info_prev_time > debug_info_delay) {
         debug_info_prev_time = ros::Time::now();
         ROS_INFO("BNO055 yaw: %f", euler_yaw * 180 / M_PI);

@@ -23,24 +23,32 @@ namespace pt = boost::posix_time;
 
 class GPSArduinoBridge {
 private:
-	ros::NodeHandle nh;
+	ros::NodeHandle nh;  // ROS node handle
 
-	ros::Publisher gps_pub;
-	ros::Publisher navsat_pub;
+	// GPS data publishers and data message
+	ros::Publisher gps_pub;  // publish gps_common GPSFix messages
+	ros::Publisher navsat_pub;  // publish sensor_msgs NavSatFix messages
 
+	gps_common::GPSFix gps_msg;
+	sensor_msgs::NavSatFix navsat_msg;
+
+	// Serial connection variables
 	string serial_port;
 	int serial_baud;
 	string serial_buffer;
 	serial::Serial serial_ref;
-	void waitForPacket(const string packet);
 
+	// How often to report the GPS's status to the console or log
 	ros::Time debug_info_prev_time;
 	ros::Duration debug_info_delay;
 
-	gps_common::GPSFix gps_msg;
-	sensor_msgs::NavSatFix navsat_msg;
+	// Wait for the packet header specified with a timeout
+	void waitForPacket(const string packet);
+
+	// Helper method for parsing the GPS's data
 	void parseGPSMessage();
 
+	// scalar containers for the time. Translated to unix timestamps
 	int days;
 	int months;
 	int years;
@@ -52,22 +60,26 @@ private:
 public:
 	GPSArduinoBridge(ros::NodeHandle* nodehandle);
 
+	// The frame name of the IMU. Links to the base_link frame
 	static const string GPS_FRAME_ID;
 	static const string CHILD_FRAME_ID;
 
+	// Important constants for the node's initialization
 	static const string NODE_NAME;
-	static const string PACKET_END;
-	static const string HELLO_MESSAGE;
-	static const string READY_MESSAGE;
-	static const string START_COMMAND;
-	static const string STOP_COMMAND;
+	static const string PACKET_END;  // character that every packet ends with
+	static const string HELLO_MESSAGE;  // the message to expect when the microcontroller starts up
+	static const string READY_MESSAGE;  // message signalling that the microcontroller is ready to receive commands
+	static const string START_COMMAND;  // packet to send to the microcontroller to tell it to start
+	static const string STOP_COMMAND;  // packet to send to the microcontroller to tell it to stop
 
-	static const string GPS_MESSAGE_HEADER;
-	static const string MESSAGE_DELIMITER;
+	// GPS data packet properties
+	static const string GPS_MESSAGE_HEADER;  // the string that all imu data packets start with
+	static const string MESSAGE_DELIMITER;  // IMU data segments are separated by this character
 
 	int run();
 };
 
+// Custom error messages. Easier than returning from multiple functions to return an exit code
 struct Error : exception
 {
 	char text[1000];

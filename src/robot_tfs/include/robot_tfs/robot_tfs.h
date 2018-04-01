@@ -5,7 +5,7 @@
 #include "sensor_msgs/NavSatFix.h"
 #include "sensor_msgs/Imu.h"
 #include "std_msgs/Float64.h"
-#include "nav_msgs/RobotTFs.h"
+#include "nav_msgs/Odometry.h"
 #include "robot_localization/SetDatum.h"
 #include <tf/transform_datatypes.h>
 #include <tf/transform_broadcaster.h>
@@ -24,7 +24,7 @@ private:
 
     ros::ServiceClient client;
     robot_localization::SetDatum srv;
-    nav_msgs::RobotTFs odom_msg;
+    nav_msgs::Odometry odom_msg;
 
     tf::TransformBroadcaster tf_broadcaster;
 
@@ -42,7 +42,7 @@ private:
     tf::Transform static_trans_gps;
     tf::Transform static_trans_laser;
 
-    tf::Transform RobotTFs_transform;
+    tf::Transform odometry_transform;
 
     bool enc_data_received, imu_data_received;
 
