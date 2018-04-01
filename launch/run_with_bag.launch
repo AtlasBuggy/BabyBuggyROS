@@ -11,7 +11,7 @@
       <!-- <param name="~angularUpdate" value="1"/> -->
       <!-- <param name="~linearUpdate" value="-1"/> -->
     </node>
-  <node name="tf_logger" pkg="tf_logger" type="tf_logger" output="screen"/>
+  <node name="robot_tfs" pkg="robot_tfs" type="robot_tfs_node" output="screen"/>
 
   <node pkg="rosbag" type="play" name="player" output="screen" args="/home/genericvmname/BabyBuggyROS/bags/2018-02-04-16-38-47.bag -r 0.1 -l"/>
 </launch>

@@ -209,8 +209,10 @@ void GPSArduinoBridge::parseGPSMessage()
 		serial_buffer.erase(0, pos + MESSAGE_DELIMITER.length());
 	}
 
-	gps_msg.time = to_unix_time(years, months, days, hours, minutes, seconds, milliseconds);
+	if (gps_msg.status.status == gps_msg.status.STATUS_FIX) {
+		gps_msg.time = to_unix_time(years, months, days, hours, minutes, seconds, milliseconds);
 
-	navsat_pub.publish(navsat_msg);
-	gps_pub.publish(gps_msg);
+		navsat_pub.publish(navsat_msg);
+		gps_pub.publish(gps_msg);
+	}
 }

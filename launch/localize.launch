@@ -23,7 +23,7 @@
         <param name="~serial_baud" type="int" value="115200"/>
     </node>
 
-    <node name="tf_logger" pkg="tf_logger" type="tf_logger" output="screen"/>
+    <node name="robot_tfs" pkg="robot_tfs" type="robot_tfs" output="screen"/>
 
   <arg name="map_path"/>
 

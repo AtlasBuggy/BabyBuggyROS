@@ -6,10 +6,7 @@ int main(int argc, char **argv)
     ros::NodeHandle nh("~");
 
     Odometry broadcaster(&nh);
-    ros::Rate clock_rate(60);
 
-    while(ros::ok()){
-      ros::spinOnce();
-      clock_rate.sleep();
-    }
+    ros::spin();
+    return 0;
 }

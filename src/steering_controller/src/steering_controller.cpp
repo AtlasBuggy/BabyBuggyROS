@@ -28,7 +28,7 @@ void joyCallback(const sensor_msgs::Joy& joy_msg) {
 
 int main(int argc, char** argv) {
 
-    ros::init(argc, argv, "joystick_controller");
+    ros::init(argc, argv, "steering_controller");
 
     ros::NodeHandle node;
     ros::Subscriber joySub = node.subscribe("/joy", 10, &joyCallback);
