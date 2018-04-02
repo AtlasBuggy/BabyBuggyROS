@@ -5,7 +5,7 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "odometry");
     ros::NodeHandle nh("~");
 
-    Odometry broadcaster(&nh);
+    RobotTFs broadcaster(&nh);
 
     ros::spin();
     return 0;

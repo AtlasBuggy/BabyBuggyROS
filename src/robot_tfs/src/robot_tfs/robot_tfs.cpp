@@ -34,14 +34,17 @@ RobotTFs::RobotTFs(ros::NodeHandle* nodehandle):nh(*nodehandle)
     odom_x = 0;
     odom_y = 0;
 
+    // set the IMU's transform relative to the laser
     robot_imu_orientation.setRPY(0, 0, 0);
     static_trans_imu.setOrigin(tf::Vector3(IMU_LASER_X, IMU_LASER_Y, IMU_LASER_Z));
     static_trans_imu.setRotation(robot_imu_orientation);
 
+    // set the GPS's transform relative to the laser
     robot_gps_orientation.setRPY(0, 0, 0);
     static_trans_gps.setOrigin(tf::Vector3(GPS_LASER_X, GPS_LASER_Y, GPS_LASER_Z));
     static_trans_gps.setRotation(robot_gps_orientation);
 
+    // Initial orientation is always 0
     current_imu_orientation.setRPY(0, 0, 0);
 
     // initialize odom_msg
@@ -61,6 +64,7 @@ RobotTFs::RobotTFs(ros::NodeHandle* nodehandle):nh(*nodehandle)
 
     tf_broadcaster = tf::TransformBroadcaster();
 
+    // apply transforms
     tf_broadcaster.sendTransform(tf::StampedTransform(static_trans_laser, ros::Time::now(), BASE_LINK_FRAME_NAME, LASER_FRAME_NAME));
     tf_broadcaster.sendTransform(tf::StampedTransform(static_trans_gps, ros::Time::now(), GPS_FRAME_NAME, BASE_LINK_FRAME_NAME));
     tf_broadcaster.sendTransform(tf::StampedTransform(static_trans_imu, ros::Time::now(), IMU_FRAME_NAME, BASE_LINK_FRAME_NAME));
@@ -68,6 +72,7 @@ RobotTFs::RobotTFs(ros::NodeHandle* nodehandle):nh(*nodehandle)
 
 void RobotTFs::IMUCallback(const sensor_msgs::Imu& msg)
 {
+    // Convert sensor_msgs quaternion to tf quaternion
     tf::Quaternion tmp;
 
     tmp.setValue(
@@ -77,21 +82,26 @@ void RobotTFs::IMUCallback(const sensor_msgs::Imu& msg)
         msg.orientation.w
     );
 
+    // extract 3x3 rotation matrix from quaternion
     tf::Matrix3x3 m(tmp);
-    m.getEulerYPR(yaw, pitch, roll);
+    m.getEulerYPR(yaw, pitch, roll);  // convert to ypr and set current_imu_orientation
     current_imu_orientation.setRPY(roll, pitch, yaw);
 
-    odom_x += cos(yaw) * banked_dist;
-    odom_y += sin(yaw) * banked_dist;
-    banked_dist = 0;
-
+    // Only produce odometry messages if both sensors (encoders and IMU) are initialized and producing data
     if (enc_data_received)
     {
+        // Use yaw and the encoder's banked_dist to calculate
+        odom_x += cos(yaw) * banked_dist;
+        odom_y += sin(yaw) * banked_dist;
+        banked_dist = 0;  // don't add redundant distances to the x, y position
+
+        // Form the odometry transform and broadcast it
         odometry_transform.setOrigin(tf::Vector3(odom_x, odom_y, 0.0));
         odometry_transform.setRotation(current_imu_orientation);
 
         tf_broadcaster.sendTransform(tf::StampedTransform(odometry_transform, ros::Time::now(), ODOM_FRAME_NAME, IMU_FRAME_NAME));
 
+        // Form the odometry message with the IMU's orientation and accumulated distance in x and y
         odom_msg.header.stamp = ros::Time::now();
 
         // fill out and publish odom data
@@ -115,6 +125,7 @@ void RobotTFs::IMUCallback(const sensor_msgs::Imu& msg)
 
 void RobotTFs::GPSCallback(const sensor_msgs::NavSatFix& msg)
 {
+    // Wait for the GPS to produce data that's valid and set robot_localization's datum
     if (msg.status.status == msg.status.STATUS_FIX) {
         if (!datum_set) {
             srv.request.geo_pose.position.latitude = msg.latitude;
@@ -144,6 +155,7 @@ void RobotTFs::GPSCallback(const sensor_msgs::NavSatFix& msg)
 
 void RobotTFs::EncoderCallback(const std_msgs::Float64& msg)
 {
+    // append the encoder's distance to banked_dist. The arduino produces distances relative to the last measurement.
     banked_dist += msg.data / 1000;
     enc_data_received = true;
 }

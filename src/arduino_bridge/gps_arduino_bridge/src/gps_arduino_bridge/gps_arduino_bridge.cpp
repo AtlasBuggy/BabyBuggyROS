@@ -141,22 +141,25 @@ void GPSArduinoBridge::parseGPSMessage()
 	// strip off header and the trailing newline character
 	serial_buffer = serial_buffer.substr(GPS_MESSAGE_HEADER.size() + 1, serial_buffer.size() - 1);
 
+	// set message header with frame name and time
 	gps_msg.header.frame_id = GPS_FRAME_ID;
-	gps_msg.header.stamp = ros::Time::now();
-
 	navsat_msg.header.frame_id = GPS_FRAME_ID;
+	gps_msg.header.stamp = ros::Time::now();
 	navsat_msg.header.stamp = ros::Time::now();
 
+	// loop through the buffer until the end is reached
+    // pos is the next MESSAGE_DELIMITER character
 	size_t pos = 0;
 	string token;
-
 	while ((pos = serial_buffer.find(MESSAGE_DELIMITER)) != string::npos)
 	{
+		// extract the next segment of data (serial_buffer will be erased up to pos at the end)
 		token = serial_buffer.substr(0, pos);
 		if (token.size() == 0 || token.compare("nop") == 0) {
 			return;
 		}
 
+		// parse differently based on the first character of the segment (e.g. 'ga40.442535' is latitude in degrees)
 		switch (token.at(0)) {
 			case 't':
 				switch (token.at(1)) {
@@ -212,9 +215,11 @@ void GPSArduinoBridge::parseGPSMessage()
 				break;
 		}
 
+		// erase up to the end of the current token plus the delimiter character
 		serial_buffer.erase(0, pos + MESSAGE_DELIMITER.length());
 	}
 
+	// Only publish data if the GPS things the data is valid
 	if (gps_msg.status.status == gps_msg.status.STATUS_FIX) {
 		gps_msg.time = to_unix_time(years, months, days, hours, minutes, seconds, milliseconds);
 
