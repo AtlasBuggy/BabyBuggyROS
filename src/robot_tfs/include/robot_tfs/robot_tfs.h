@@ -23,6 +23,10 @@ private:
 
     // This node produces naive odometry measurements (odometry with drift over time)
     ros::Publisher odom_pub;
+
+    // publish sensor_msgs NavSatFix messages
+    // ros::Publisher navsat_pub;
+
     nav_msgs::Odometry odom_msg;
 
     // This node also feeds into robot_localization. When GPS data is received, set the datum
@@ -34,18 +38,11 @@ private:
     tf::TransformBroadcaster tf_broadcaster;
 
     // Current scalar and vector values for measurements of the robot
-    float odom_x, odom_y;
+    double odom_x, odom_y;
     double roll, pitch, yaw;
     float banked_dist;  // distance relative to the last measurement
     tf::Quaternion current_imu_orientation;
     bool enc_data_received, imu_data_received;
-
-    // Static transforms between sensors on the robot
-    tf::Quaternion robot_imu_orientation;  // should be zero relative to the robot's frame
-    tf::Quaternion robot_gps_orientation;  // should be zero relative to the robot's frame
-    tf::Transform static_trans_imu;
-    tf::Transform static_trans_gps;
-    tf::Transform static_trans_laser;
 
     // transformation from the robot's frame to the odom frame
     tf::Transform odometry_transform;
@@ -62,7 +59,7 @@ public:
     // Names of various frames of the robot
     static const string BASE_LINK_FRAME_NAME;
     static const string ODOM_FRAME_NAME;
-    static const string LASER_FRAME_NAME;
+    // static const string LASER_FRAME_NAME;
     static const string IMU_FRAME_NAME;
     static const string GPS_FRAME_NAME;
 

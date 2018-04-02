@@ -2,7 +2,7 @@
 
 const string RobotTFs::BASE_LINK_FRAME_NAME = "base_link";
 const string RobotTFs::ODOM_FRAME_NAME = "odom";
-const string RobotTFs::LASER_FRAME_NAME = "laser";
+// const string RobotTFs::LASER_FRAME_NAME = "laser";
 const string RobotTFs::IMU_FRAME_NAME = "imu";
 const string RobotTFs::GPS_FRAME_NAME = "gps";
 
@@ -25,27 +25,18 @@ RobotTFs::RobotTFs(ros::NodeHandle* nodehandle):nh(*nodehandle)
 
     // setup odom publisher
     odom_pub = nh.advertise<nav_msgs::Odometry>("/naive_odom", 1000);
+    // navsat_pub = nh.advertise<sensor_msgs::NavSatFix>("/raw_gps_navsat", 1000);
 
     // setup client for SetDatum service
     client = nh.serviceClient<robot_localization::SetDatum>("/datum");
     datum_set = false;
 
     // initialize odometry
-    odom_x = 0;
-    odom_y = 0;
-
-    // set the IMU's transform relative to the laser
-    robot_imu_orientation.setRPY(0, 0, 0);
-    static_trans_imu.setOrigin(tf::Vector3(IMU_LASER_X, IMU_LASER_Y, IMU_LASER_Z));
-    static_trans_imu.setRotation(robot_imu_orientation);
-
-    // set the GPS's transform relative to the laser
-    robot_gps_orientation.setRPY(0, 0, 0);
-    static_trans_gps.setOrigin(tf::Vector3(GPS_LASER_X, GPS_LASER_Y, GPS_LASER_Z));
-    static_trans_gps.setRotation(robot_gps_orientation);
+    odom_x = 0.0;
+    odom_y = 0.0;
 
     // Initial orientation is always 0
-    current_imu_orientation.setRPY(0, 0, 0);
+    current_imu_orientation.setRPY(0.0, 0.0, 0.0);
 
     // initialize odom_msg
     odom_msg.header.frame_id = ODOM_FRAME_NAME;
@@ -58,16 +49,11 @@ RobotTFs::RobotTFs(ros::NodeHandle* nodehandle):nh(*nodehandle)
     // Set covariance to identity multiplied by scaling factor
     size_t identity_col = 0;
     for (size_t row = 0; row < 36; row += 6) {
-        odom_msg.pose.covariance[row + identity_col] = 1E6;
+        odom_msg.pose.covariance[row + identity_col] = 1E-3;
         identity_col++;
     }
 
     tf_broadcaster = tf::TransformBroadcaster();
-
-    // apply transforms
-    tf_broadcaster.sendTransform(tf::StampedTransform(static_trans_laser, ros::Time::now(), BASE_LINK_FRAME_NAME, LASER_FRAME_NAME));
-    tf_broadcaster.sendTransform(tf::StampedTransform(static_trans_gps, ros::Time::now(), GPS_FRAME_NAME, BASE_LINK_FRAME_NAME));
-    tf_broadcaster.sendTransform(tf::StampedTransform(static_trans_imu, ros::Time::now(), IMU_FRAME_NAME, BASE_LINK_FRAME_NAME));
 }
 
 void RobotTFs::IMUCallback(const sensor_msgs::Imu& msg)
@@ -87,19 +73,19 @@ void RobotTFs::IMUCallback(const sensor_msgs::Imu& msg)
     m.getEulerYPR(yaw, pitch, roll);  // convert to ypr and set current_imu_orientation
     current_imu_orientation.setRPY(roll, pitch, yaw);
 
+    // Use yaw and the encoder's banked_dist to calculate
+    odom_x += cos(yaw) * banked_dist;
+    odom_y += sin(yaw) * banked_dist;
+    banked_dist = 0;  // don't add redundant distances to the x, y position
+
     // Only produce odometry messages if both sensors (encoders and IMU) are initialized and producing data
     if (enc_data_received)
     {
-        // Use yaw and the encoder's banked_dist to calculate
-        odom_x += cos(yaw) * banked_dist;
-        odom_y += sin(yaw) * banked_dist;
-        banked_dist = 0;  // don't add redundant distances to the x, y position
-
         // Form the odometry transform and broadcast it
         odometry_transform.setOrigin(tf::Vector3(odom_x, odom_y, 0.0));
         odometry_transform.setRotation(current_imu_orientation);
 
-        tf_broadcaster.sendTransform(tf::StampedTransform(odometry_transform, ros::Time::now(), ODOM_FRAME_NAME, IMU_FRAME_NAME));
+        tf_broadcaster.sendTransform(tf::StampedTransform(odometry_transform, ros::Time::now(), ODOM_FRAME_NAME, BASE_LINK_FRAME_NAME));
 
         // Form the odometry message with the IMU's orientation and accumulated distance in x and y
         odom_msg.header.stamp = ros::Time::now();
@@ -126,7 +112,7 @@ void RobotTFs::IMUCallback(const sensor_msgs::Imu& msg)
 void RobotTFs::GPSCallback(const sensor_msgs::NavSatFix& msg)
 {
     // Wait for the GPS to produce data that's valid and set robot_localization's datum
-    if (msg.status.status == msg.status.STATUS_FIX) {
+    if (msg.status.status == msg.status.STATUS_FIX && msg.latitude != 0.0 && msg.longitude != 0.0) {
         if (!datum_set) {
             srv.request.geo_pose.position.latitude = msg.latitude;
             srv.request.geo_pose.position.longitude = msg.longitude;
@@ -138,7 +124,7 @@ void RobotTFs::GPSCallback(const sensor_msgs::NavSatFix& msg)
             srv.request.geo_pose.orientation.w = current_imu_orientation.w();
 
             if(client.call(srv)){
-                ROS_INFO("gps datum service call - success!\n");
+                ROS_INFO("gps datum service call - success! lat: %0.6f, long: %0.6f\n", msg.latitude, msg.longitude);
             }
             else{
                 ROS_INFO("gps datum service call - failed!\n");
@@ -147,6 +133,10 @@ void RobotTFs::GPSCallback(const sensor_msgs::NavSatFix& msg)
             datum_set = true;
             ROS_INFO("gps datum service call - datum set!\n");
         }
+
+        // msg.child_frame_id = BASE_LINK_FRAME_NAME;
+        //
+        // navsat_pub.publish(msg);
     }
     else {
         datum_set = false;
