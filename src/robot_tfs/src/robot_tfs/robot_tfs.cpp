@@ -77,7 +77,11 @@ void RobotTFs::IMUCallback(const sensor_msgs::Imu& msg)
     m.getEulerYPR(yaw, pitch, roll);  // convert to ypr and set current_imu_orientation
     current_imu_orientation.setRPY(roll, pitch, yaw);
 
-    yaw = fmod(-yaw - M_PI / 2, 2 * M_PI);
+    yaw = 2.0 * M_PI - yaw;
+    // yaw = fmod(-yaw, 2 * M_PI);
+    // if (yaw < 0.0) {
+    //     yaw += 2.0 * M_PI;
+    // }
 
     // Use yaw and the encoder's banked_dist to calculate
     odom_x += cos(yaw) * banked_dist;

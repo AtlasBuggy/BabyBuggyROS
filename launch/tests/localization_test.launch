@@ -1,9 +1,13 @@
 <launch>
     <param name="use_sim_time" value="true"/>
+    <node pkg="tf2_ros" type="static_transform_publisher" name="laser_tf_broadcaster" args="0 0 0 0 0 0 1 base_link laser" />
     <node pkg="tf2_ros" type="static_transform_publisher" name="gps_tf_broadcaster" args="0 0 0 0 0 0 1 base_link GPS" />
     <node pkg="tf2_ros" type="static_transform_publisher" name="imu_tf_broadcaster" args="0.1016 0.0762 0.095 0 0 0 1 base_link imu" />
+
+    <node pkg="rqt_multiplot" type="rqt_multiplot" name="plotter" output="screen" args="--multiplot-config /home/woz4tetra/Documents/rqt_multiplot.xml"/>
+
     <node name="robot_tfs" pkg="robot_tfs" type="robot_tfs_node" output="screen">
-        <param name="~initial_compass_yaw_deg" type="double" value="270.0"/>
+        <param name="~initial_compass_yaw_deg" type="double" value="180.0"/>
     </node>
 
     <node name="navsat_transform" pkg="robot_localization" type="navsat_transform_node" output="screen">
@@ -39,7 +43,7 @@
             false, false, false]
         </rosparam>
         <param name="odom0_relative" value="true"/>
-        <param name="odom0_differential" value="false"/>
+        <param name="odom0_differential" value="true"/>
 
         <param name="odom1" value="/odometry/gps"/>
         <rosparam param="odom1_config">
@@ -49,6 +53,7 @@
             false, false, false,
             false, false, false]
         </rosparam>
+        <param name="odom1_relative" value="false"/>
         <param name="odom1_differential" value="false"/>
 
         <rosparam param="initial_estimate_covariance">

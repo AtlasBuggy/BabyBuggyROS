@@ -3,6 +3,7 @@
     <node name="LIDAR" pkg="sicktoolbox_wrapper" type="sicklms">
         <param name="port" value="/dev/serial/by-id/usb-Prolific_Technology_Inc._USB-Serial_Controller-if00-port0" />
         <param name="baud" value="38400"/>
+        <param name="inverted" value="true"/>
     </node>
 
     <node name="encoder" pkg="rosserial_python" type="serial_node.py">

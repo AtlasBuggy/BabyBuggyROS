@@ -29,24 +29,37 @@ start_time = info_dict['start']
 with rosbag.Bag(rosbag_out_path, 'w') as outbag:
     last_time = time.clock()
     for topic, msg, t in rosbag.Bag(rosbag_in_path).read_messages():
-        # This also replaces tf timestamps under the assumption
-        # that all transforms in the message share the same timestamp
+        # invert the laser
+        if topic == "/scan":
+            angle_min = msg.angle_min
+            angle_max = msg.angle_max
+            msg.angle_min = angle_max
+            msg.angle_max = angle_min
+        # delete computed old robot pose odometry calculations
         if topic == "/robot_pose":
             continue
+
+        # modify tf data
         if topic == "/tf" and msg.transforms:
-            remove_index = -1
+            remove_indices = []
             for index, tf in enumerate(msg.transforms):
                 if tf.header.frame_id == "odom" and tf.child_frame_id == "imu":
                     # tf.child_frame_id = "base_link"
-                    remove_index = index
+                    remove_indices.append(index)
 
-                if tf.header.frame_id == "imu" and tf.child_frame_id == "base_link":
-                    tf.child_frame_id = "imu"
-                    tf.header.frame_id = "base_link"
+                elif tf.header.frame_id == "base_link" and tf.child_frame_id == "laser":
+                    remove_indices.append(index)
 
-                    remove_index = index
-            if remove_index >= 0:
-                msg.transforms.pop(remove_index)
+                elif tf.header.frame_id == "imu" and tf.child_frame_id == "base_link":
+                    remove_indices.append(index)
+
+                # if tf.header.frame_id == "imu" and tf.child_frame_id == "base_link":
+                #     tf.child_frame_id = "imu"
+                #     tf.header.frame_id = "base_link"
+
+            if remove_indices:
+                for index in remove_indices:
+                    msg.transforms.pop(index)
         outbag.write(topic, msg, msg.header.stamp if msg._has_header else t)
 
         if time.clock() - last_time > .1:
