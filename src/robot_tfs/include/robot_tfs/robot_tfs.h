@@ -40,7 +40,7 @@ private:
     // Current scalar and vector values for measurements of the robot
     double odom_x, odom_y;
     double roll, pitch, yaw;
-    float banked_dist;  // distance relative to the last measurement
+    double banked_dist;  // distance relative to the last measurement
     tf::Quaternion current_imu_orientation;
     bool enc_data_received, imu_data_received;
 

@@ -2,6 +2,7 @@
     <param name="use_sim_time" value="true"/>
     <node pkg="tf2_ros" type="static_transform_publisher" name="gps_tf_broadcaster" args="0 0 0 0 0 0 1 base_link GPS" />
     <node pkg="tf2_ros" type="static_transform_publisher" name="imu_tf_broadcaster" args="0.1016 0.0762 0.095 0 0 0 1 base_link imu" />
+    <node name="robot_tfs" pkg="robot_tfs" type="robot_tfs_node" output="screen"/>
 
     <node name="navsat_transform" pkg="robot_localization" type="navsat_transform_node" output="screen">
         <param name="wait_for_datum" value="true"/>
@@ -16,9 +17,6 @@
     </node>
 
     <node name="ekf" pkg="robot_localization" type="ekf_localization_node" output="screen">
-        <!-- <param name="frequency" value="10"/>
-        <param name="sensor_timeout" value="0.5"/> -->
-
         <param name="two_d_mode" value="true"/>
 
         <param name="print_diagnostics" value="true"/>
@@ -87,6 +85,4 @@
             0,    0,    0,    0,    0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    1e-9]
         </rosparam>
     </node>
-
-    <node name="robot_tfs" pkg="robot_tfs" type="robot_tfs_node" output="screen"/>
 </launch>

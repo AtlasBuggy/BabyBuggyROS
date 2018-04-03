@@ -34,6 +34,7 @@ RobotTFs::RobotTFs(ros::NodeHandle* nodehandle):nh(*nodehandle)
     // initialize odometry
     odom_x = 0.0;
     odom_y = 0.0;
+    banked_dist = 0.0;
 
     // Initial orientation is always 0
     current_imu_orientation.setRPY(0.0, 0.0, 0.0);
@@ -76,7 +77,7 @@ void RobotTFs::IMUCallback(const sensor_msgs::Imu& msg)
     // Use yaw and the encoder's banked_dist to calculate
     odom_x += cos(yaw) * banked_dist;
     odom_y += sin(yaw) * banked_dist;
-    banked_dist = 0;  // don't add redundant distances to the x, y position
+    banked_dist = 0.0;  // don't add redundant distances to the x, y position
 
     // Only produce odometry messages if both sensors (encoders and IMU) are initialized and producing data
     if (enc_data_received)
@@ -146,6 +147,6 @@ void RobotTFs::GPSCallback(const sensor_msgs::NavSatFix& msg)
 void RobotTFs::EncoderCallback(const std_msgs::Float64& msg)
 {
     // append the encoder's distance to banked_dist. The arduino produces distances relative to the last measurement.
-    banked_dist += msg.data / 1000;
+    banked_dist += msg.data / 1000.0;
     enc_data_received = true;
 }
