@@ -117,13 +117,12 @@ std::size_t operator()(const std::vector<T> &in) const
 
 unordered_map<vector<int>, int, vectorHasher< int > > hashTbl;
 
-const char file[] = "steering.txt";
 ofstream dataFile;
 const int vector_size = 6;
-const double sig_fig = 100.0;
+const double sig_fig = 50.0;
 vector<int> key;
 
-void init_store() {
+void init_store(char file[]) {
   for (int i = 0; i < vector_size; i++) {
     key.push_back(0);
   }
@@ -134,33 +133,49 @@ void store(vector<int> key) {
   for ( auto i = key.begin(); i != key.end(); i++ ) {
     dataFile << *i << " ";
   }
-  dataFile << -1 << endl;
+  dataFile << endl;
 }
 
 void end_store() {
+  dataFile.flush();
   dataFile.close();
 }
 
 int to_degrees(double theta) {
-  return ((int)(theta * (180.0) /  M_PI) % 360);
+  return (((int)(theta * (180.0) /  M_PI) % 360) + 360) % 360;
+}
+
+const double step_size = 0.01;
+int compute_count = 0;
+
+void compute(char file[], double step_size) {
+  init_store(file);
+  for (double tf = 0; tf <= 5; tf += step_size)
+  {
+    for (double v = step_size; v <= 20; v += step_size)
+    {
+      for (double a = -10; a <= 10; a += step_size)
+      {
+        Trajectory tr = find_rotation(0.05, tf/2, tf, a/2, v);
+        key[0] = (int)(v * sig_fig);
+        key[1] = (int)(a * sig_fig);
+        key[2] = ((int)(to_degrees(tr.dtheta))) % 360;
+        key[3] = (int)(tr.dx * sig_fig);
+        key[4] = (int)(tr.dy * sig_fig);
+        key[5] = (int)(tf * sig_fig);
+        store(key);
+      }
+    }
+    cout << compute_count << " " << tf << "/5" << endl;
+  }
+  end_store();
+  compute_count++;
 }
 
 int main() {
-  init_store();
-  for (double tf = 0.01; tf <= 5; tf+=0.01)
-  {
-    for (double v = 0.01; v <= 25; v += 0.01)
-    {
-      Trajectory tr = find_rotation(0.01, tf/2, tf, 0, v);
-      key[0] = sig_fig;
-      key[1] = (int)(v * sig_fig);
-      key[2] = (int)(to_degrees(tr.dtheta));
-      key[3] = (int)(tr.dx * sig_fig);
-      key[4] = (int)(tr.dy * sig_fig);
-      key[5] = (int)(tf * sig_fig);
-      store(key);
-    }
-  }
-  end_store();
+  char file5[] = "step_size0.01";
+  compute(file5, 0.01);
+  //compute(file2, 0.02);
+  //compute(file1, 0.01);
   return 0;
 }
