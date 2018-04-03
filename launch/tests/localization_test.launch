@@ -4,7 +4,7 @@
     <node pkg="tf2_ros" type="static_transform_publisher" name="gps_tf_broadcaster" args="0 0 0 0 0 0 1 base_link GPS" />
     <node pkg="tf2_ros" type="static_transform_publisher" name="imu_tf_broadcaster" args="0.1016 0.0762 0.095 0 0 0 1 base_link imu" />
 
-    <node pkg="rqt_multiplot" type="rqt_multiplot" name="plotter" output="screen" args="--multiplot-config /home/woz4tetra/Documents/rqt_multiplot.xml"/>
+    <node pkg="rqt_multiplot" type="rqt_multiplot" name="plotter" output="screen" args="--multiplot-config /home/woz4tetra/BabyBuggyROS/launch/rqt_multiplot.xml"/>
 
     <node name="robot_tfs" pkg="robot_tfs" type="robot_tfs_node" output="screen">
         <param name="~initial_compass_yaw_deg" type="double" value="180.0"/>
