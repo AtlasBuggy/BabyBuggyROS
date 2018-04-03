@@ -126,12 +126,13 @@ void init_store(char file[]) {
   for (int i = 0; i < vector_size; i++) {
     key.push_back(0);
   }
-  dataFile.open(file);
+  dataFile.open(file, ios::out | ios::binary);
 }
 
 void store(vector<int> key) {
   for ( auto i = key.begin(); i != key.end(); i++ ) {
     dataFile << *i << " ";
+    //dataFile.write((char*)(&(*i)), sizeof(int));
   }
   dataFile << endl;
 }
@@ -150,7 +151,7 @@ int compute_count = 0;
 
 void compute(char file[], double step_size) {
   init_store(file);
-  for (double tf = 0; tf <= 5; tf += step_size)
+  for (double tf = 0; tf <= 0.00; tf += step_size)
   {
     for (double v = step_size; v <= 20; v += step_size)
     {
@@ -173,7 +174,7 @@ void compute(char file[], double step_size) {
 }
 
 int main() {
-  char file5[] = "step_size0.01";
+  char file5[] = "04082018.3.bin";
   compute(file5, 0.01);
   //compute(file2, 0.02);
   //compute(file1, 0.01);

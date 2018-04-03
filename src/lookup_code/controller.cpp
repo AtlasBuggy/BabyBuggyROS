@@ -30,7 +30,7 @@ std::size_t operator()(const std::vector<T> &in) const
 
 unordered_map<vector<int>, int, vectorHasher< int > > hashTbl;
 
-const char file[] = "step_size";
+const char file[] = "step_size0.01";
 const int size = 6;
 
 void init() {
