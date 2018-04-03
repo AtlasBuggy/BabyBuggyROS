@@ -1,11 +1,11 @@
-#include "robot_tfs/robot_tfs.h"
+#include "babybuggy_odometry/babybuggy_odometry.h"
 
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "odometry");
     ros::NodeHandle nh("~");
 
-    RobotTFs broadcaster(&nh);
+    BabybuggyOdometry broadcaster(&nh);
 
     ros::spin();
     return 0;
