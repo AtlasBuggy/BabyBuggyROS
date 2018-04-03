@@ -31,6 +31,9 @@ RobotTFs::RobotTFs(ros::NodeHandle* nodehandle):nh(*nodehandle)
     client = nh.serviceClient<robot_localization::SetDatum>("/datum");
     datum_set = false;
 
+    // pull parameters from launch file
+    nh.param<double>("initial_compass_yaw_deg", initial_compass_yaw_deg, 0.0);
+
     // initialize odometry
     odom_x = 0.0;
     odom_y = 0.0;
@@ -74,6 +77,8 @@ void RobotTFs::IMUCallback(const sensor_msgs::Imu& msg)
     m.getEulerYPR(yaw, pitch, roll);  // convert to ypr and set current_imu_orientation
     current_imu_orientation.setRPY(roll, pitch, yaw);
 
+    yaw = fmod(-yaw - M_PI / 2, 2 * M_PI);
+
     // Use yaw and the encoder's banked_dist to calculate
     odom_x += cos(yaw) * banked_dist;
     odom_y += sin(yaw) * banked_dist;
@@ -94,7 +99,7 @@ void RobotTFs::IMUCallback(const sensor_msgs::Imu& msg)
         // fill out and publish odom data
         odom_msg.pose.pose.position.x = odom_x;
         odom_msg.pose.pose.position.y = odom_y;
-        odom_msg.pose.pose.position.z = 0;
+        odom_msg.pose.pose.position.z = 0.0;
 
         odom_msg.pose.pose.orientation.x = current_imu_orientation.x();
         odom_msg.pose.pose.orientation.z = current_imu_orientation.z();
@@ -119,10 +124,13 @@ void RobotTFs::GPSCallback(const sensor_msgs::NavSatFix& msg)
             srv.request.geo_pose.position.longitude = msg.longitude;
             srv.request.geo_pose.position.altitude = msg.altitude;
 
-            srv.request.geo_pose.orientation.x = current_imu_orientation.x();
-            srv.request.geo_pose.orientation.y = current_imu_orientation.y();
-            srv.request.geo_pose.orientation.z = current_imu_orientation.z();
-            srv.request.geo_pose.orientation.w = current_imu_orientation.w();
+            tf::Quaternion tmp;
+            tmp.setRPY(0.0, 0.0, initial_compass_yaw_deg * M_PI / 180.0);
+
+            srv.request.geo_pose.orientation.x = tmp.x();
+            srv.request.geo_pose.orientation.y = tmp.y();
+            srv.request.geo_pose.orientation.z = tmp.z();
+            srv.request.geo_pose.orientation.w = tmp.w();
 
             if(client.call(srv)){
                 ROS_INFO("gps datum service call - success! lat: %0.6f, long: %0.6f\n", msg.latitude, msg.longitude);

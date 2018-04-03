@@ -43,6 +43,7 @@ private:
     double banked_dist;  // distance relative to the last measurement
     tf::Quaternion current_imu_orientation;
     bool enc_data_received, imu_data_received;
+    double initial_compass_yaw_deg;
 
     // transformation from the robot's frame to the odom frame
     tf::Transform odometry_transform;

@@ -2,14 +2,16 @@
     <param name="use_sim_time" value="true"/>
     <node pkg="tf2_ros" type="static_transform_publisher" name="gps_tf_broadcaster" args="0 0 0 0 0 0 1 base_link GPS" />
     <node pkg="tf2_ros" type="static_transform_publisher" name="imu_tf_broadcaster" args="0.1016 0.0762 0.095 0 0 0 1 base_link imu" />
-    <node name="robot_tfs" pkg="robot_tfs" type="robot_tfs_node" output="screen"/>
+    <node name="robot_tfs" pkg="robot_tfs" type="robot_tfs_node" output="screen">
+        <param name="~initial_compass_yaw_deg" type="double" value="270.0"/>
+    </node>
 
     <node name="navsat_transform" pkg="robot_localization" type="navsat_transform_node" output="screen">
         <param name="wait_for_datum" value="true"/>
         <param name="zero_altitude" value="true"/>
         <param name="publish_filtered_gps" value="true"/>
 
-        <param name="magnetic_declination_radians" value="0"/>
+        <param name="magnetic_declination_radians" value="-0.1624901534"/>
         <param name="yaw_offset" value="1.570796327"/>
 
         <remap from="/imu/data" to="/BNO055" />
