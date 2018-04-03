@@ -54,7 +54,7 @@ int numDigits(int x)
 }
 
 const double w = 0.05236;
-const double x = 1.0;
+const double x = 0.8;
 
 /* incr: step size, must be less than tf
  * tm: time in between at which buggy stops wheel rotation (sec)
@@ -119,7 +119,7 @@ unordered_map<vector<int>, int, vectorHasher< int > > hashTbl;
 
 ofstream dataFile;
 const int vector_size = 6;
-const double sig_fig = 50.0;
+const double sig_fig = 2.0;
 vector<int> key;
 
 void init_store(char file[]) {
@@ -138,6 +138,7 @@ void store(vector<int> key) {
 }
 
 void end_store() {
+  dataFile << -100000;
   dataFile.flush();
   dataFile.close();
 }
@@ -146,14 +147,15 @@ int to_degrees(double theta) {
   return (((int)(theta * (180.0) /  M_PI) % 360) + 360) % 360;
 }
 
-const double step_size = 0.01;
+//const double step_size = 0.01;
 int compute_count = 0;
 
 void compute(char file[], double step_size) {
+  int count = 0;
   init_store(file);
-  for (double tf = 0; tf <= 0.00; tf += step_size)
+  for (double tf = 0; tf <= 8; tf += step_size)
   {
-    for (double v = step_size; v <= 20; v += step_size)
+    for (double v = step_size; v <= 10; v += step_size)
     {
       for (double a = -10; a <= 10; a += step_size)
       {
@@ -165,17 +167,19 @@ void compute(char file[], double step_size) {
         key[4] = (int)(tr.dy * sig_fig);
         key[5] = (int)(tf * sig_fig);
         store(key);
+        count++;
       }
     }
-    cout << compute_count << " " << tf << "/5" << endl;
+    cout << compute_count << " " << tf << "/8" << endl;
   }
   end_store();
+  cout << count;
   compute_count++;
 }
 
 int main() {
-  char file5[] = "04082018.3.bin";
-  compute(file5, 0.01);
+  char file5[] = "04082018.5.bin";
+  compute(file5, 0.05);
   //compute(file2, 0.02);
   //compute(file1, 0.01);
   return 0;

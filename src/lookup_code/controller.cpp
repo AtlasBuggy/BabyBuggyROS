@@ -30,7 +30,7 @@ std::size_t operator()(const std::vector<T> &in) const
 
 unordered_map<vector<int>, int, vectorHasher< int > > hashTbl;
 
-const char file[] = "step_size0.01";
+const char file[] = "04082018.4.bin";
 const int size = 6;
 
 void init() {
@@ -43,6 +43,7 @@ void init() {
     key.push_back(0);
   }
  
+  int count = 0;
   while (retrieve != -100000) {
     for (int i = 0; i < size - 1; i++) {
       dataFile >> retrieve;
@@ -51,6 +52,8 @@ void init() {
     }
     dataFile >> value;
     hashTbl[key] = value;
+    count++;
+    if (count % 100000 == 0) cout << count << endl;
   }
  
   dataFile.close();
@@ -59,11 +62,14 @@ void init() {
 int main() {
   init();
   vector<int> key;
-  key.push_back(1995);
-  key.push_back(230);
-  key.push_back(121);
-  key.push_back(4894);
-  key.push_back(2508);
-  cout << hashTbl[key];
+  for (int i = 0; i < 1000; i++)
+  {
+    key.push_back(1995);
+    key.push_back(230);
+    key.push_back(121);
+    key.push_back(4894);
+    key.push_back(2508);
+    cout << hashTbl[key];
+  }
   return 0;
 }
