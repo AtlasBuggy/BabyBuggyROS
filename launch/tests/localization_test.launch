@@ -4,10 +4,28 @@
     <node pkg="tf2_ros" type="static_transform_publisher" name="gps_tf_broadcaster" args="0 0 0 0 0 0 1 base_link GPS" />
     <node pkg="tf2_ros" type="static_transform_publisher" name="imu_tf_broadcaster" args="0.1016 0.0762 0.095 0 0 0 1 base_link imu" />
 
-    <node pkg="rqt_multiplot" type="rqt_multiplot" name="plotter" output="screen" args="--multiplot-config /home/woz4tetra/BabyBuggyROS/launch/rqt_multiplot.xml"/>
+    <node pkg="rqt_multiplot" type="rqt_multiplot" name="plotter" output="screen" args="--multiplot-config /home/woz4tetra/BabyBuggyROS/launch/rqt_multiplot.xml  --multiplot-run-all"/>
 
     <node name="robot_tfs" pkg="robot_tfs" type="robot_tfs_node" output="screen">
         <param name="~initial_compass_yaw_deg" type="double" value="180.0"/>
+        <rosparam param="gps_covariances">
+            [
+                16.0, 0.0, 0.0,
+                0.0, 16.0, 0.0,
+                0.0, 0.0, 100.0
+            ]
+        </rosparam>
+
+        <rosparam param="odom_covariances">
+            [
+                1.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0, 0.0, 0.0, 0.0004
+            ]
+        </rosparam>
     </node>
 
     <node name="navsat_transform" pkg="robot_localization" type="navsat_transform_node" output="screen">
@@ -19,7 +37,7 @@
         <param name="yaw_offset" value="1.570796327"/>
 
         <remap from="/imu/data" to="/BNO055" />
-        <remap from="/gps/fix" to="/GpsNavSat" />
+        <remap from="/gps/fix" to="/raw_gps_navsat" />
     </node>
 
     <node name="ekf" pkg="robot_localization" type="ekf_localization_node" output="screen">
@@ -37,12 +55,12 @@
         <param name="odom0" value="/naive_odom"/>
         <rosparam param="odom0_config">
             [true, true, false,
-            false, false, true,
+            false, false, false,
             false, false, false,
             false, false, false,
             false, false, false]
         </rosparam>
-        <param name="odom0_relative" value="true"/>
+        <!-- <param name="odom0_relative" value="true"/> -->
         <param name="odom0_differential" value="true"/>
 
         <param name="odom1" value="/odometry/gps"/>
@@ -55,6 +73,17 @@
         </rosparam>
         <param name="odom1_relative" value="false"/>
         <param name="odom1_differential" value="false"/>
+
+        <param name="odom2" value="/naive_odom"/>
+        <rosparam param="odom2_config">
+            [false, false, false,
+            false, false, true,
+            false, false, false,
+            false, false, false,
+            false, false, false]
+        </rosparam>
+        <param name="odom2_relative" value="true"/>
+        <param name="odom2_differential" value="false"/>
 
         <rosparam param="initial_estimate_covariance">
             [0.05, 0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
@@ -75,8 +104,8 @@
         </rosparam>
 
         <rosparam param="process_noise_covariance">
-            [0.3, 0,    0,    0,    0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
-            0,    0.3, 0,    0,    0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
+            [1e-9, 0,    0,    0,    0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
+            0,    1e-9, 0,    0,    0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
             0,    0,    1e-9, 0,    0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
             0,    0,    0,    1e-9, 0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
             0,    0,    0,    0,    1e-9, 0,    0,    0,    0,    0,     0,     0,     0,    0,    0,

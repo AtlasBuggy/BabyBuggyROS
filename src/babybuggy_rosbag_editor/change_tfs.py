@@ -39,27 +39,31 @@ with rosbag.Bag(rosbag_out_path, 'w') as outbag:
         if topic == "/robot_pose":
             continue
 
+        # remove tf data
+        if topic == "/tf":
+            continue
+
         # modify tf data
-        if topic == "/tf" and msg.transforms:
-            remove_indices = []
-            for index, tf in enumerate(msg.transforms):
-                if tf.header.frame_id == "odom" and tf.child_frame_id == "imu":
-                    # tf.child_frame_id = "base_link"
-                    remove_indices.append(index)
-
-                elif tf.header.frame_id == "base_link" and tf.child_frame_id == "laser":
-                    remove_indices.append(index)
-
-                elif tf.header.frame_id == "imu" and tf.child_frame_id == "base_link":
-                    remove_indices.append(index)
-
-                # if tf.header.frame_id == "imu" and tf.child_frame_id == "base_link":
-                #     tf.child_frame_id = "imu"
-                #     tf.header.frame_id = "base_link"
-
-            if remove_indices:
-                for index in remove_indices:
-                    msg.transforms.pop(index)
+        # if topic == "/tf" and msg.transforms:
+        #     remove_indices = []
+        #     for index, tf in enumerate(msg.transforms):
+        #         if tf.header.frame_id == "odom" and tf.child_frame_id == "imu":
+        #             # tf.child_frame_id = "base_link"
+        #             remove_indices.append(index)
+        #
+        #         elif tf.header.frame_id == "base_link" and tf.child_frame_id == "laser":
+        #             remove_indices.append(index)
+        #
+        #         elif tf.header.frame_id == "imu" and tf.child_frame_id == "base_link":
+        #             remove_indices.append(index)
+        #
+        #         # if tf.header.frame_id == "imu" and tf.child_frame_id == "base_link":
+        #         #     tf.child_frame_id = "imu"
+        #         #     tf.header.frame_id = "base_link"
+        #
+        #     if remove_indices:
+        #         for index in remove_indices:
+        #             msg.transforms.pop(index)
         outbag.write(topic, msg, msg.header.stamp if msg._has_header else t)
 
         if time.clock() - last_time > .1:

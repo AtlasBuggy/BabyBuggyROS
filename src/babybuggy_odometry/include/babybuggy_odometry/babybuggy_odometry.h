@@ -1,5 +1,5 @@
-#ifndef _ROBOT_TFS_H_
-#define _ROBOT_TFS_H_
+#ifndef _BABYBUGGY_ODOMETRY_H_
+#define _BABYBUGGY_ODOMETRY_H_
 
 #include "ros/ros.h"
 #include "sensor_msgs/NavSatFix.h"
@@ -12,7 +12,7 @@
 
 using namespace std;
 
-class RobotTFs{
+class BabybuggyOdometry{
 private:
     ros::NodeHandle nh;  // ROS node handle
 
@@ -25,9 +25,10 @@ private:
     ros::Publisher odom_pub;
 
     // publish sensor_msgs NavSatFix messages
-    // ros::Publisher navsat_pub;
+    ros::Publisher navsat_pub;
 
     nav_msgs::Odometry odom_msg;
+    sensor_msgs::NavSatFix gps_covariance_msg;  // used only to store gps covariances
 
     // This node also feeds into robot_localization. When GPS data is received, set the datum
     ros::ServiceClient client;
@@ -35,7 +36,7 @@ private:
     bool datum_set;
 
     // Broadcasts the robot's transforms of different sensors and reference frames
-    tf::TransformBroadcaster tf_broadcaster;
+    // tf::TransformBroadcaster tf_broadcaster;
 
     // Current scalar and vector values for measurements of the robot
     double odom_x, odom_y;
@@ -55,7 +56,7 @@ private:
     void run();
 
 public:
-    RobotTFs(ros::NodeHandle* nodehandle);
+    BabybuggyOdometry(ros::NodeHandle* nodehandle);
 
     // Names of various frames of the robot
     static const string BASE_LINK_FRAME_NAME;
@@ -74,9 +75,13 @@ public:
     static const float GPS_LASER_Y;
     static const float GPS_LASER_Z;
 
+    static const size_t NUM_ROWS_ODOM_COVARIANCE;
+    static const size_t NUM_ROWS_GPS_COVARIANCE;
+
+
     // How often to report this node's status to the console or log
     ros::Time debug_info_prev_time;
     static const ros::Duration DEBUG_INFO_DELAY;
 };
 
-#endif // _ROBOT_TFS_H_
+#endif // _BABYBUGGY_ODOMETRY_H_
