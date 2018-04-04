@@ -30,11 +30,11 @@ with rosbag.Bag(rosbag_out_path, 'w') as outbag:
     last_time = time.clock()
     for topic, msg, t in rosbag.Bag(rosbag_in_path).read_messages():
         # invert the laser
-        if topic == "/scan":
-            angle_min = msg.angle_min
-            angle_max = msg.angle_max
-            msg.angle_min = angle_max
-            msg.angle_max = angle_min
+        # if topic == "/scan":
+        #     angle_min = msg.angle_min
+        #     angle_max = msg.angle_max
+        #     msg.angle_min = angle_max
+        #     msg.angle_max = angle_min
         # delete computed old robot pose odometry calculations
         if topic == "/robot_pose":
             continue

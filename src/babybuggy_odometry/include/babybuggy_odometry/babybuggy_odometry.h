@@ -9,6 +9,8 @@
 #include "robot_localization/SetDatum.h"
 #include <tf/transform_datatypes.h>
 #include <tf/transform_broadcaster.h>
+#include "geometry_msgs/PoseWithCovarianceStamped.h"
+#include <math.h>
 
 using namespace std;
 
@@ -27,8 +29,15 @@ private:
     // publish sensor_msgs NavSatFix messages
     ros::Publisher navsat_pub;
 
+    // publish gps bearing messages
+    ros::Publisher bearing_pub;
+
     nav_msgs::Odometry odom_msg;
     sensor_msgs::NavSatFix gps_covariance_msg;  // used only to store gps covariances
+    double bearing_covariance;  // only important value is the yaw covariance
+    geometry_msgs::PoseWithCovarianceStamped bearing_msg;  // used for storing GPS bearing
+
+    vector<double> bearing_vector;  // store previous bearing values for averaging
 
     // This node also feeds into robot_localization. When GPS data is received, set the datum
     ros::ServiceClient client;
@@ -52,6 +61,8 @@ private:
     void GPSCallback(const sensor_msgs::NavSatFix& msg);
     void IMUCallback(const sensor_msgs::Imu& msg);
     void EncoderCallback(const std_msgs::Float64& msg);
+
+    double calculateBearing(sensor_msgs::NavSatFix currentMsg, sensor_msgs::NavSatFix prevMsg);
 
     void run();
 
@@ -77,6 +88,8 @@ public:
 
     static const size_t NUM_ROWS_ODOM_COVARIANCE;
     static const size_t NUM_ROWS_GPS_COVARIANCE;
+
+    static const size_t BEARING_ROLL_AVERAGE_SIZE;
 
 
     // How often to report this node's status to the console or log

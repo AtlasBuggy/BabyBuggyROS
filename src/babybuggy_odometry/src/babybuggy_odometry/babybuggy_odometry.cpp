@@ -4,7 +4,7 @@ const string BabybuggyOdometry::BASE_LINK_FRAME_NAME = "base_link";
 const string BabybuggyOdometry::ODOM_FRAME_NAME = "odom";
 // const string BabybuggyOdometry::LASER_FRAME_NAME = "laser";
 const string BabybuggyOdometry::IMU_FRAME_NAME = "imu";
-const string BabybuggyOdometry::GPS_FRAME_NAME = "gps";
+const string BabybuggyOdometry::GPS_FRAME_NAME = "GPS";
 
 const float BabybuggyOdometry::IMU_LASER_X = 0.1016;
 const float BabybuggyOdometry::IMU_LASER_Y = 0.0762;
@@ -16,6 +16,8 @@ const float BabybuggyOdometry::GPS_LASER_Z = 0.0;
 
 const size_t BabybuggyOdometry::NUM_ROWS_ODOM_COVARIANCE = 6;
 const size_t BabybuggyOdometry::NUM_ROWS_GPS_COVARIANCE = 3;
+
+const size_t BabybuggyOdometry::BEARING_ROLL_AVERAGE_SIZE = 3;
 
 const ros::Duration BabybuggyOdometry::DEBUG_INFO_DELAY = ros::Duration(1.0);
 
@@ -29,6 +31,7 @@ BabybuggyOdometry::BabybuggyOdometry(ros::NodeHandle* nodehandle):nh(*nodehandle
     // setup odom publisher
     odom_pub = nh.advertise<nav_msgs::Odometry>("/naive_odom", 100);
     navsat_pub = nh.advertise<sensor_msgs::NavSatFix>("/raw_gps_navsat", 5);
+    bearing_pub = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("/gps_bearing", 5);
 
     // setup client for SetDatum service
     client = nh.serviceClient<robot_localization::SetDatum>("/datum");
@@ -46,9 +49,11 @@ BabybuggyOdometry::BabybuggyOdometry(ros::NodeHandle* nodehandle):nh(*nodehandle
     odom_msg.header.frame_id = ODOM_FRAME_NAME;
     odom_msg.child_frame_id = BASE_LINK_FRAME_NAME;
 
+    bearing_msg.header.frame_id = GPS_FRAME_NAME;
 
     // pull parameters from launch file
     nh.param<double>("initial_compass_yaw_deg", initial_compass_yaw_deg, 0.0);
+    nh.param<double>("bearing_covariance", bearing_covariance, 0.0);
 
     size_t identity_col;
     XmlRpc::XmlRpcValue _odom_launch_covariances;
@@ -112,7 +117,8 @@ void BabybuggyOdometry::IMUCallback(const sensor_msgs::Imu& msg)
     tf::Matrix3x3 m(tmp);
     m.getEulerYPR(yaw, pitch, roll);  // convert to ypr and set current_imu_orientation
 
-    yaw = 2.0 * M_PI - yaw;
+    yaw *= -1;
+    // yaw = 2.0 * M_PI - yaw;
     // yaw = fmod(-yaw, 2 * M_PI);
     // if (yaw < 0.0) {
     //     yaw += 2.0 * M_PI;
@@ -139,6 +145,8 @@ void BabybuggyOdometry::IMUCallback(const sensor_msgs::Imu& msg)
         odom_msg.header.stamp = ros::Time::now();
 
         // fill out and publish odom data
+        // odom_msg.pose.pose.position.x = banked_dist;
+        // odom_msg.pose.pose.position.y = 0.0;
         odom_msg.pose.pose.position.x = odom_x;
         odom_msg.pose.pose.position.y = odom_y;
         odom_msg.pose.pose.position.z = 0.0;
@@ -157,8 +165,35 @@ void BabybuggyOdometry::IMUCallback(const sensor_msgs::Imu& msg)
     }
 }
 
+double BabybuggyOdometry::calculateBearing(sensor_msgs::NavSatFix currentMsg, sensor_msgs::NavSatFix prevMsg)
+{
+    // pulled from https://www.dougv.com/2009/07/calculating-the-bearing-and-compass-rose-direction-between-two-latitude-longitude-coordinates-in-php/
+    double long2_rad = currentMsg.longitude * M_PI / 180.0;
+    double long1_rad = prevMsg.longitude * M_PI / 180.0;
+    double lat2_rad = currentMsg.latitude * M_PI / 180.0;
+    double lat1_rad = prevMsg.latitude * M_PI / 180.0;
+
+    double d_long_rad = long2_rad - long1_rad;
+    double d_phi = log(
+        tan(lat2_rad / 2.0 + M_PI / 4.0) /
+        tan(lat1_rad / 2.0 + M_PI / 4.0)
+    );
+
+    if (abs(d_long_rad) > M_PI) {
+        if (d_long_rad > 0) {
+            d_long_rad = d_long_rad - 2 * M_PI;
+        }
+        else {
+            d_long_rad = d_long_rad + 2 * M_PI;
+        }
+    }
+
+    return fmod(atan2(d_long_rad, d_phi) + 2 * M_PI, 2 * M_PI);
+}
+
 void BabybuggyOdometry::GPSCallback(const sensor_msgs::NavSatFix& msg)
 {
+    static sensor_msgs::NavSatFix prev_msg;
     // Wait for the GPS to produce data that's valid and set robot_localization's datum
     if (msg.status.status == msg.status.STATUS_FIX && msg.latitude != 0.0 && msg.longitude != 0.0) {
         if (!datum_set) {
@@ -175,20 +210,68 @@ void BabybuggyOdometry::GPSCallback(const sensor_msgs::NavSatFix& msg)
             srv.request.geo_pose.orientation.w = tmp.w();
 
             if(client.call(srv)){
-                ROS_INFO("gps datum service call - success! lat: %0.6f, long: %0.6f\n", msg.latitude, msg.longitude);
+                ROS_INFO("gps datum service call - success! lat: %0.6f, long: %0.6f", msg.latitude, msg.longitude);
             }
             else{
-                ROS_INFO("gps datum service call - failed!\n");
+                ROS_INFO("gps datum service call - failed!");
             }
 
             datum_set = true;
-            ROS_INFO("gps datum service call - datum set!\n");
+            ROS_INFO("gps datum service call - datum set!");
         }
 
-        sensor_msgs::NavSatFix new_msg = msg;
-        new_msg.position_covariance = gps_covariance_msg.position_covariance;
-        new_msg.position_covariance_type = msg.COVARIANCE_TYPE_APPROXIMATED;
-        navsat_pub.publish(new_msg);
+        if (msg.latitude != prev_msg.latitude && msg.longitude != prev_msg.longitude)
+        {
+            if (bearing_vector.size() == 0) {
+                bearing_vector.push_back(initial_compass_yaw_deg * M_PI / 180.0);
+                ROS_INFO("Initializing bearing rolling average");
+            }
+            else if (bearing_vector.size() == 1) {
+                double current_bearing = -calculateBearing(msg, prev_msg);
+                bearing_vector.push_back(current_bearing);
+                ROS_INFO("First bearing value: %0.4f", current_bearing);
+            }
+            else {
+                double current_bearing = -calculateBearing(msg, prev_msg);
+                bearing_vector.push_back(current_bearing);
+
+                double sum_bearings = 0.0;
+                for (size_t i = 0; i < bearing_vector.size(); i++) {
+
+                    sum_bearings += bearing_vector[i];
+                }
+                double avg_bearing = sum_bearings / (double)bearing_vector.size();
+                ROS_INFO("Current bearing: %0.4f", avg_bearing * 180.0 / M_PI);
+
+                tf::Quaternion bearing_quat;
+                bearing_quat.setRPY(0.0, 0.0, avg_bearing);
+
+                bearing_msg.header.stamp = ros::Time::now();
+                bearing_msg.pose.pose.orientation.w = bearing_quat.w();
+                bearing_msg.pose.pose.orientation.x = bearing_quat.x();
+                bearing_msg.pose.pose.orientation.y = bearing_quat.y();
+                bearing_msg.pose.pose.orientation.z = bearing_quat.z();
+
+                size_t identity_col = 0;
+                for (size_t row = 0; row < 36; row += 6) {
+                    bearing_msg.pose.covariance[row + identity_col] = 1e-9;
+                    identity_col++;
+                }
+                bearing_msg.pose.covariance[35] = bearing_covariance;  // last element is the yaw covariance
+
+                bearing_pub.publish(bearing_msg);
+
+                if (bearing_vector.size() >= BEARING_ROLL_AVERAGE_SIZE) {
+                    bearing_vector.erase(bearing_vector.begin());
+                }
+            }
+
+            prev_msg = msg;
+            prev_msg.position_covariance = gps_covariance_msg.position_covariance;
+            prev_msg.position_covariance_type = msg.COVARIANCE_TYPE_APPROXIMATED;
+        }
+
+        navsat_pub.publish(prev_msg);
     }
     else {
         datum_set = false;
