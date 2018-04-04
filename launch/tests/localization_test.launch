@@ -6,7 +6,7 @@
 
     <node pkg="rqt_multiplot" type="rqt_multiplot" name="plotter" output="screen" args="--multiplot-config /home/woz4tetra/BabyBuggyROS/launch/rqt_multiplot.xml  --multiplot-run-all"/>
 
-    <node name="robot_tfs" pkg="robot_tfs" type="robot_tfs_node" output="screen">
+    <node name="babybuggy_odometry" pkg="babybuggy_odometry" type="babybuggy_odometry_node" output="screen">
         <param name="~initial_compass_yaw_deg" type="double" value="180.0"/>
         <rosparam param="gps_covariances">
             [
