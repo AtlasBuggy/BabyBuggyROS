@@ -2,13 +2,13 @@
   <param name="use_sim_time" value="true"/>
 
   <node name="gmapping" pkg="gmapping" type="slam_gmapping" args="scan:=scan" output="screen">
-      <param name="~map_update_interval" value="1660"/>
-      <!-- <param name="~temporalUpdate" value="0.01"/>
+      <param name="~map_update_interval" value="10"/>
+      <param name="~temporalUpdate" value="0.01"/>
       <param name="~throttle_scans" value="1"/>
       <param name="~srr" value="0.01"/>
       <param name="~srt" value="0.01"/>
       <param name="~str" value="0.01"/>
-      <param name="~stt" value="0.01"/> -->
+      <param name="~stt" value="0.01"/>
       <!-- <param name="minimumScore" value="50"/> -->
       <param name="~maxUrange" value="32"/>
       <!-- <param name="~delta" value="0.01" /> -->
@@ -20,12 +20,12 @@
       <!-- <param name="~linearUpdate" value="0.01"/> -->
     </node>
 
-    <node name="robot_tfs" pkg="robot_tfs" type="robot_tfs_node" output="screen">
+    <!-- <node name="robot_tfs" pkg="robot_tfs" type="robot_tfs_node" output="screen">
         <param name="~initial_compass_yaw_deg" type="double" value="180.0"/>
     </node>
     <node pkg="tf2_ros" type="static_transform_publisher" name="gps_tf_broadcaster" args="0 0 0 0 0 0 1 base_link GPS" />
     <node pkg="tf2_ros" type="static_transform_publisher" name="laser_tf_broadcaster" args="0 0 0 0 0 0 1 base_link laser" />
-    <node pkg="tf2_ros" type="static_transform_publisher" name="imu_tf_broadcaster" args="0.1016 0.0762 0.095 0 0 0 1 base_link imu" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="imu_tf_broadcaster" args="0.1016 0.0762 0.095 0 0 0 1 base_link imu" /> -->
 
     <node name="visualization" pkg="rviz" type="rviz" />
 </launch>
