@@ -84,21 +84,21 @@
             false, false, false,
             false, false, false]
         </rosparam>
-        <param name="odom2_relative" value="true"/>
+        <param name="odom2_relative" value="false"/>
         <param name="odom2_differential" value="false"/>
 
         <!-- IMU orientation -->
         <!-- <param name="imu0" value="/BNO055"/>
         <rosparam param="imu0_config">
             [false, false, false,
-            false, false, false,
+            true, true, true,
             false, false, false,
             true, true, true,
             true, true, true]
         </rosparam> -->
 
         <!-- GPS compass bearing -->
-        <param name="pose0" value="/gps_bearing"/>
+        <!-- <param name="pose0" value="/gps_bearing"/>
         <rosparam param="pose0_config">
             [false, false, false,
             false, false, true,
@@ -106,7 +106,7 @@
             false, false, false,
             false, false, false]
         </rosparam>
-        <param name="pose0_relative" value="false"/>
+        <param name="pose0_relative" value="false"/> -->
 
         <rosparam param="initial_estimate_covariance">
             [1e6, 0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
@@ -152,20 +152,20 @@
             base_frame: base_link
             map_frame: map
 
-            map_update_interval: 30  # Publish new map (seconds)
+            map_update_interval: 60  # Publish new map (seconds)
             throttle_scans: 1  # don't skip any scans
 
-            # maxRange: 0.1 # Should be just less than sensor range
-            maxUrange: 32.0 # Should be just greater than sensor range
-            # particles: 360 # Increased from 80
+            maxRange: 32.5 # Should be just less than sensor range
+            maxUrange: 33.0 # Should be just greater than sensor range
+            particles: 360 # Increased from 80
 
-            # minimumScore: 50
+            minimumScore: 10
 
             # Update frequencies
-            linearUpdate: 0.01
-            angularUpdate: 0.01
-            temporalUpdate: 0.01
-            resampleThreshold: 0.5
+            # linearUpdate: 0.01
+            # angularUpdate: 0.01
+            # temporalUpdate: 0.01
+            # resampleThreshold: 0.5
 
             # Initial Map Size
             xmin: -100.0
@@ -176,7 +176,7 @@
 
             # All default
             # sigma: 0.05
-            # kernelSize: 1
+            kernelSize: 3
             # lstep: 0.05
             # astep: 0.05
             # iterations: 5
@@ -189,6 +189,5 @@
             # lasamplestep: 0.005
 
         </rosparam>
-        <!-- <remap from="scan" to="$(arg scan_topic)"/> -->
     </node>
 </launch>

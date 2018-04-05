@@ -3,7 +3,7 @@
     <node name="LIDAR" pkg="sicktoolbox_wrapper" type="sicklms">
         <param name="port" value="/dev/serial/by-id/usb-Prolific_Technology_Inc._USB-Serial_Controller-if00-port0" />
         <param name="baud" value="38400"/>
-        <param name="inverted" value="true"/>
+        <!-- <param name="inverted" value="true"/> -->
     </node>
 
     <node name="encoder" pkg="rosserial_python" type="serial_node.py">
@@ -24,8 +24,6 @@
         <param name="~serial_port" type="string" value="/dev/serial/by-id/usb-Silicon_Labs_CP2104_USB_to_UART_Bridge_Controller_00FEBA78-if00-port0"/>
         <param name="~serial_baud" type="int" value="115200"/>
     </node>
-
-    <!-- <node name="robot_tfs" pkg="robot_tfs" type="robot_tfs_node" output="screen"/> -->
 
     <node pkg="rosbag" type="record" name="record" output="screen" args="-a -o /home/nvidia/bagfiles/gmapping/"/>
 </launch>
