@@ -1,0 +1,43 @@
+<launch>
+  <param name="use_sim_time" value="true"/>
+  <node name="navsat_transform" pkg="robot_localization" type="navsat_transform_node">
+    <param name="wait_for_datum" value="true"/>
+    <param name="zero_altitude" value="true"/>
+    <param name="publish_filtered_gps" value="true"/>
+  </node>
+
+  <node name="ekf" pkg="robot_localization" type="ekf_localization_node" output="screen">
+    <param name="map_frame" value="map"/>
+    <param name="odom_frame" value="odom"/>
+    <param name="base_link_frame" value="base_link"/>
+    <param name="world_frame" value="world"/>
+
+    <param name="odom0" value="/odometry/filtered"/>
+    <rosparam param="odom0_config">
+      [true, true, false,
+      false, false, true,
+      false, false, false,
+      false, false, false,
+      false, false, false]
+    </rosparam>
+
+    <param name="odom1" value="/odometry/gps"/>
+    <rosparam param="odom1_config">
+      [true, true, false,
+      false, false, false,
+      false, false, false,
+      false, false, false,
+      false, false, false]
+    </rosparam>
+
+    <rosparam param="initial_estimate_covariance">
+      [0.8, 0, ..., 1e-9]
+    </rosparam>
+
+    <rosparam param="process_noise_covariance">
+      [0.04, 0, ..., 0.02]
+    </rosparam>
+  </node>
+
+  <node name="odometry" pkg="odometry" type="odometry_node" output="screen"/>
+</launch>

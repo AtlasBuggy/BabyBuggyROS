@@ -1,12 +1,12 @@
 
 #include <SerialManager.h>
-// #define DEBUG
+#define DEBUG
 
 SerialManager::SerialManager()
 {
     _command = "";
     _paused = true;
-    _baud = DEFAULT_RATE;
+    _baud = (int)DEFAULT_RATE;
 }
 
 SerialManager::SerialManager(int baud)
@@ -19,11 +19,10 @@ SerialManager::SerialManager(int baud)
 void SerialManager::begin()
 {
     Serial.begin(_baud);
-    Serial.setTimeout(100);  // 100 ms
-    #ifdef DEBUG
-    Serial.print("BAUD is ");
-    Serial.println(DEFAULT_RATE);
-    #endif
+    // #ifdef DEBUG
+    // Serial.print("BAUD is ");
+    // Serial.println(DEFAULT_RATE);
+    // #endif
 }
 
 bool SerialManager::available() {
