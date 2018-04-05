@@ -10,10 +10,13 @@
 #include "DualVNH5019MotorShield.h"
 
 #define POT_PIN A2
+#define SERVO_PIN 3
 
 DualVNH5019MotorShield md;
 ros::NodeHandle nh;
 int steering_requested_value = 400;
+int braking_requested_value = 0;
+int current_brake_value = 0;
 
 Servo brake_servo;
 
@@ -23,14 +26,13 @@ void steer(const std_msgs::Int32& msg){
 
 void set_brakes(const std_msgs::Int32& msg)
 {
-    int brake_value = msg.data;
-    if (brake_value < 0) {
-        brake_value = 0;
+    braking_requested_value = (int)msg.data;
+    if (braking_requested_value < 0) {
+        braking_requested_value = 0;
     }
-    if (brake_value > 180) {
-        brake_value = 180;
+    if (braking_requested_value > 180) {
+        braking_requested_value = 180;
     }
-    brake_servo.write(brake_value);
 }
 
 ros::Subscriber<std_msgs::Int32> steeringSub("steering", steer);
@@ -49,28 +51,30 @@ void stop_motor(){
 }
 
 void setup() {
-    pinMode(POT_PIN, INPUT);
-    brake_servo.attach(3);
-
     md.init();
     nh.initNode();
     nh.subscribe(steeringSub);
     nh.subscribe(brakeSub);
+
+    pinMode(POT_PIN, INPUT);
+    brake_servo.attach(SERVO_PIN);
 }
 
 void loop(){
     // absolute steering
-    if (steering_requested_value <= 1023) {
+    if (steering_requested_value <= 1023)
+    {
         int diff = steering_requested_value - analogRead(POT_PIN);
 
-        if(abs(diff) > 5){
-            if(diff > 0){
+        if (abs(diff) > 5) {
+            if (diff > 0) {
                 turn_right();
-            }else{
+            }
+            else {
                 turn_left();
             }
         }
-        else{
+        else {
             stop_motor();
         }
     }
@@ -83,12 +87,18 @@ void loop(){
         // relative steering
         if (steering_requested_value == 2048) {
             turn_left();
-        } else if (steering_requested_value == 4096) {
+        }
+        else if (steering_requested_value == 4096) {
             turn_right();
         }
         else {
             stop_motor();
         }
+    }
+
+    if (braking_requested_value != current_brake_value) {
+        current_brake_value = braking_requested_value;
+        brake_servo.write(braking_requested_value);
     }
 
     delay(10);
