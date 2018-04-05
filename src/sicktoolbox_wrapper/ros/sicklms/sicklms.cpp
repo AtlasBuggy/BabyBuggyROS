@@ -400,18 +400,18 @@ int main(int argc, char **argv)
 			updater.update();
 		}
 	}
-	catch (...)
+	catch (exception& e)
 	{
-		ROS_ERROR("Unknown error.");
+		ROS_ERROR("Unknown error. %s", e.what());
 		return 1;
 	}
 	try
 	{
 		sick_lms.Uninitialize();
 	}
-	catch (...)
+	catch (exception& e)
 	{
-		ROS_ERROR("Error during uninitialize");
+		ROS_ERROR("Error during uninitialize. %s", e.what());
 		return 1;
 	}
 	ROS_INFO("Success.\n");

@@ -266,6 +266,10 @@ void Bno055ArduinoBridge::parseImuMessage()
         prev_mag_status = mag_status;
     }
 
+    euler_roll = std::fmod(euler_roll - initial_euler_roll, 2.0 * M_PI);
+    euler_pitch = std::fmod(euler_pitch - initial_euler_pitch, 2.0 * M_PI);
+    euler_yaw = std::fmod(euler_yaw - initial_euler_yaw, 2.0 * M_PI);
+
     if (euler_roll - prev_euler_roll > JUMP_WARN_THRESHOLD) {
         ROS_WARN("bno055 roll jumped suddenly (%frad -> %frad)", prev_euler_roll, euler_roll);
     }
@@ -275,10 +279,6 @@ void Bno055ArduinoBridge::parseImuMessage()
     if (euler_yaw - prev_euler_yaw > JUMP_WARN_THRESHOLD) {
         ROS_WARN("bno055 yaw jumped suddenly (%frad -> %frad)", prev_euler_yaw, euler_yaw);
     }
-
-    euler_roll = std::fmod(euler_roll - initial_euler_roll, 2.0 * M_PI);
-    euler_pitch = std::fmod(euler_pitch - initial_euler_pitch, 2.0 * M_PI);
-    euler_yaw = std::fmod(euler_yaw - initial_euler_yaw, 2.0 * M_PI);
 
     prev_euler_roll = euler_roll;
     prev_euler_pitch = euler_pitch;

@@ -1,5 +1,5 @@
 <launch>
   <node name="steering" pkg="rosserial_python" type="serial_node.py">
-      <param name="port" value="/dev/ttyUSB0"/>
+      <param name="port" value="/dev/serial/by-id/usb-Adafruit_Adafruit_Metro_328_ADAOLANOp-if00-port0"/>
   </node>
 </launch>
