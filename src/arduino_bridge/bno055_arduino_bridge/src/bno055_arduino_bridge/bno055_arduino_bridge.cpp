@@ -36,8 +36,8 @@ Bno055ArduinoBridge::Bno055ArduinoBridge(ros::NodeHandle* nodehandle):nh(*nodeha
 
     // pull parameters from the launch file
     nh.param<string>("serial_port", serial_port, "usb-Silicon_Labs_CP2104_USB_to_UART_Bridge_Controller_00FEBA3D-if00-port0");
-    nh.param<float>("debug_info_delay", _debug_info_delay, 1.0);
     nh.param<int>("serial_baud", serial_baud, 115200);
+    nh.param<float>("debug_info_delay", _debug_info_delay, 1.0);
 
     imu_pub = nh.advertise<sensor_msgs::Imu>("/BNO055", 5);
 

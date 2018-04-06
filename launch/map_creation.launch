@@ -152,14 +152,14 @@
             base_frame: base_link
             map_frame: map
 
-            map_update_interval: 60  # Publish new map (seconds)
+            map_update_interval: 20  # Publish new map (seconds)
             throttle_scans: 1  # don't skip any scans
 
             maxRange: 32.5 # Should be just less than sensor range
             maxUrange: 33.0 # Should be just greater than sensor range
-            particles: 360 # Increased from 80
+            particles: 80 # Increased from 80
 
-            minimumScore: 10
+            minimumScore: 1
 
             # Update frequencies
             # linearUpdate: 0.01
@@ -176,7 +176,7 @@
 
             # All default
             # sigma: 0.05
-            kernelSize: 3
+            # kernelSize: 1
             # lstep: 0.05
             # astep: 0.05
             # iterations: 5

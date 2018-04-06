@@ -48,6 +48,7 @@ GPSArduinoBridge::GPSArduinoBridge(ros::NodeHandle* nodehandle) : nh(*nodehandle
 	// pull parameters from the launch file
 	nh.param<string>("serial_port", serial_port, "usb-Silicon_Labs_CP2104_USB_to_UART_Bridge_Controller_00FEBA3D-if00-port0");
 	nh.param<int>("serial_baud", serial_baud, 9600);
+	nh.param<float>("debug_info_delay", _debug_info_delay, 1.0);
 
 	gps_pub = nh.advertise<gps_common::GPSFix>("/AdafruitGPS", 5);
 	navsat_pub = nh.advertise<sensor_msgs::NavSatFix>("/GpsNavSat", 5);
@@ -59,6 +60,9 @@ GPSArduinoBridge::GPSArduinoBridge(ros::NodeHandle* nodehandle) : nh(*nodehandle
 	minutes = 0;
 	seconds = 0;
 	milliseconds = 0;
+
+	debug_info_prev_time = ros::Time::now();
+	debug_info_delay = ros::Duration(_debug_info_delay);
 }
 
 
@@ -218,6 +222,15 @@ void GPSArduinoBridge::parseGPSMessage()
 		// erase up to the end of the current token plus the delimiter character
 		serial_buffer.erase(0, pos + MESSAGE_DELIMITER.length());
 	}
+
+	if (ros::Time::now() - debug_info_prev_time > debug_info_delay) {
+        debug_info_prev_time = ros::Time::now();
+        ROS_INFO(
+			"GPS lat: %0.6f, long: %0.6f, fix: %s",
+			navsat_msg.latitude,
+			navsat_msg.longitude,
+			gps_msg.status.status == gps_msg.status.STATUS_FIX ? "true" : "false");
+    }
 
 	// Only publish data if the GPS things the data is valid
 	if (gps_msg.status.status == gps_msg.status.STATUS_FIX) {
