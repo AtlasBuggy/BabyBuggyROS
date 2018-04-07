@@ -36,7 +36,7 @@
         </rosparam>
     </node>
 
-    <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen">
+    <!-- <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen">
         <rosparam>
             odom_frame: odom
             base_frame: base_link
@@ -84,5 +84,5 @@
             # lasamplestep: 0.005
 
         </rosparam>
-    </node>
+    </node> -->
 </launch>

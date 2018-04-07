@@ -21,6 +21,9 @@ const size_t BabybuggyOdometry::BEARING_ROLL_AVERAGE_SIZE = 3;
 
 const ros::Duration BabybuggyOdometry::DEBUG_INFO_DELAY = ros::Duration(1.0);
 
+const double BabybuggyOdometry::WHEEL_RADIUS = 0.14605;
+const double BabybuggyOdometry::TICKS_PER_ROTATION = 256.0;
+
 BabybuggyOdometry::BabybuggyOdometry(ros::NodeHandle* nodehandle):nh(*nodehandle)
 {
     // setup subscribers
@@ -40,7 +43,10 @@ BabybuggyOdometry::BabybuggyOdometry(ros::NodeHandle* nodehandle):nh(*nodehandle
     // initialize odometry
     odom_x = 0.0;
     odom_y = 0.0;
-    banked_dist = 0.0;
+    encoder_ticks = 0;
+    prev_encoder_ticks = 0;
+
+    enc_ticks_to_m = 2.0 * M_PI * WHEEL_RADIUS / TICKS_PER_ROTATION;
 
     // Initial orientation is always 0
     current_imu_orientation.setRPY(0.0, 0.0, 0.0);
@@ -124,10 +130,12 @@ void BabybuggyOdometry::IMUCallback(const sensor_msgs::Imu& msg)
     //     yaw += 2.0 * M_PI;
     // }
 
-    // Use yaw and the encoder's banked_dist to calculate
+    // Use yaw and the encoder's banked_dist to calculate x y
+    double banked_dist = (encoder_ticks - prev_encoder_ticks) * enc_ticks_to_m;
+    prev_encoder_ticks = encoder_ticks;
+
     odom_x += cos(yaw) * banked_dist;
     odom_y += sin(yaw) * banked_dist;
-    banked_dist = 0.0;  // don't add redundant distances to the x, y position
 
     // update orientation with adjusted yaw values
     current_imu_orientation.setRPY(roll, pitch, yaw);
@@ -162,6 +170,7 @@ void BabybuggyOdometry::IMUCallback(const sensor_msgs::Imu& msg)
     if (ros::Time::now() - debug_info_prev_time > DEBUG_INFO_DELAY) {
         debug_info_prev_time = ros::Time::now();
         ROS_INFO("Odom pose | X: %f, Y: %f, yaw: %f", odom_x, odom_y, yaw * 180 / M_PI);
+        ROS_INFO("Encoder | dist: %f, ticks: %li", banked_dist, encoder_ticks);
     }
 }
 
@@ -278,9 +287,10 @@ void BabybuggyOdometry::GPSCallback(const sensor_msgs::NavSatFix& msg)
     }
 }
 
-void BabybuggyOdometry::EncoderCallback(const std_msgs::Float64& msg)
+
+void BabybuggyOdometry::EncoderCallback(const std_msgs::Int64& msg)
 {
-    // append the encoder's distance to banked_dist. The arduino produces distances relative to the last measurement.
-    banked_dist += msg.data / 1000.0;
+    // append the encoder's distance to encoder_ticks. The arduino produces distances relative to the last measurement.
+    encoder_ticks += msg.data;
     enc_data_received = true;
 }
