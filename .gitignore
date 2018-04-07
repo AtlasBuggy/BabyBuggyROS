@@ -209,3 +209,8 @@ xcuserdata/
 ################
 .swp
 \#*
+
+# lookup files#
+*.bin
+*a.out*
+*a.out
