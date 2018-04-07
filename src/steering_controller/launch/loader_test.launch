@@ -1,0 +1,5 @@
+<launch>
+  <node name="checkpoint_loader" pkg="steering_controller" type="checkpoint_loader">
+    <param name="checkpoint_file" value="makerspace1.txt"/>
+  </node>
+</launch>

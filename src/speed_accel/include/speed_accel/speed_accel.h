@@ -15,7 +15,6 @@ private:
     ros::Publisher speed_pub;
     ros::Publisher accel_pub;
 
-    float prev_enc;
     float prev_speed;
     float prev_time;
 
