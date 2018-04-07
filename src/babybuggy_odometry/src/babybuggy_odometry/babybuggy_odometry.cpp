@@ -152,8 +152,8 @@ void BabybuggyOdometry::IMUCallback(const sensor_msgs::Imu& msg)
         odom_msg.pose.pose.position.z = 0.0;
 
         odom_msg.pose.pose.orientation.x = current_imu_orientation.x();
-        odom_msg.pose.pose.orientation.z = current_imu_orientation.z();
         odom_msg.pose.pose.orientation.y = current_imu_orientation.y();
+        odom_msg.pose.pose.orientation.z = current_imu_orientation.z();
         odom_msg.pose.pose.orientation.w = current_imu_orientation.w();
 
         odom_pub.publish(odom_msg);
@@ -247,10 +247,10 @@ void BabybuggyOdometry::GPSCallback(const sensor_msgs::NavSatFix& msg)
                 bearing_quat.setRPY(0.0, 0.0, avg_bearing);
 
                 bearing_msg.header.stamp = ros::Time::now();
-                bearing_msg.pose.pose.orientation.w = bearing_quat.w();
                 bearing_msg.pose.pose.orientation.x = bearing_quat.x();
                 bearing_msg.pose.pose.orientation.y = bearing_quat.y();
                 bearing_msg.pose.pose.orientation.z = bearing_quat.z();
+                bearing_msg.pose.pose.orientation.w = bearing_quat.w();
 
                 size_t identity_col = 0;
                 for (size_t row = 0; row < 36; row += 6) {

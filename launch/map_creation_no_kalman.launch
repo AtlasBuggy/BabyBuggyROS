@@ -1,0 +1,88 @@
+<launch>
+    <param name="use_sim_time" value="true"/>
+    <node pkg="tf2_ros" type="static_transform_publisher" name="laser_tf_broadcaster" args="0 0 0   1 0 0 0 base_link laser" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="gps_tf_broadcaster" args="0 0 0   0 0 0 1 base_link adafruit_gps" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="imu_tf_broadcaster" args="0.1016 0.0762 0.095   0 0 0 1 base_link imu" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="bno_tf_broadcaster" args="0.1016 0.0762 0.095   0 0 0 1 base_link Imu" />
+
+    <node pkg="rqt_multiplot" type="rqt_multiplot" name="plotter" output="screen" args="--multiplot-config /home/woz4tetra/BabyBuggyROS/launch/rqt_multiplot.xml  --multiplot-run-all"/>
+    <node name="visualization" pkg="rviz" type="rviz" />
+
+    <node name="odometry_tf_converter" pkg="odometry_tf_converter" type="odometry_tf_converter_node" output="screen">
+        <param name="~odom_sub_name" type="string" value="naive_odom"/>
+    </node>
+
+    <node name="babybuggy_odometry" pkg="babybuggy_odometry" type="babybuggy_odometry_node" output="screen">
+        <param name="~initial_compass_yaw_deg" type="double" value="180.0"/>
+
+        <param name="~bearing_covariance" type="double" value="0.05"/>
+        <rosparam param="gps_covariances">
+            [
+                50.0, 0.0, 0.0,
+                0.0, 50.0, 0.0,
+                0.0, 0.0, 1000.0
+            ]
+        </rosparam>
+
+        <rosparam param="odom_covariances">
+            [
+                1.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
+                0.0, 0.0, 0.01, 0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0, 0.01, 0.0, 0.0,
+                0.0, 0.0, 0.0, 0.0, 0.01, 0.0,
+                0.0, 0.0, 0.0, 0.0, 0.0, 0.01
+            ]
+        </rosparam>
+    </node>
+
+    <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen">
+        <rosparam>
+            odom_frame: odom
+            base_frame: base_link
+            map_frame: map
+
+            map_update_interval: 1220  # Publish new map (seconds)
+            throttle_scans: 1  # don't skip any scans
+
+            maxRange: 32.76 # Should be just less than sensor range
+            maxUrange: 32.0 # Usable region of the sensor
+            particles: 360 # Increased from 80
+
+            minimumScore: 0
+
+            # Update frequencies
+            # linearUpdate: 0.01
+            # angularUpdate: 0.01
+            temporalUpdate: 0.01
+            # resampleThreshold: 0.5
+
+            # srr: 0.01
+            # srt: 0.01
+            # str: 0.01
+            # stt: 0.01
+
+            # Initial Map Size
+            xmin: -500.0
+            ymin: -500.0
+            xmax: 500.0
+            ymax: 500.0
+            delta: 0.1
+
+            # All default
+            # sigma: 0.05
+            # kernelSize: 1
+            # lstep: 0.05
+            # astep: 0.05
+            # iterations: 5
+            # lsigma: 0.075
+            # ogain: 3.0
+            # lskip: 0
+            # llsamplerange: 0.01
+            # llsamplestep: 0.01
+            # lasamplerange: 0.005
+            # lasamplestep: 0.005
+
+        </rosparam>
+    </node>
+</launch>
