@@ -27,9 +27,11 @@ def status(length, percent):
 # rosbag_in_path = '/home/woz4tetra/BabyBuggyROS/bags/back_hills_only_encoder_calibration_2018-04-07-18-11-36.bag'
 # rosbag_out_path = '/home/woz4tetra/BabyBuggyROS/bags/back_hills_only_encoder_calibration_2018-04-07-18-11-36-edited.bag'
 
-rosbag_in_path = '/home/woz4tetra/BabyBuggyROS/bags/back_hills_only_encoder_calibration_2018-04-07-18-03-42.bag'
-rosbag_out_path = '/home/woz4tetra/BabyBuggyROS/bags/back_hills_only_encoder_calibration_2018-04-07-18-03-42-edited.bag'
+# rosbag_in_path = '/home/woz4tetra/BabyBuggyROS/bags/back_hills_only_encoder_calibration_2018-04-07-18-03-42.bag'
+# rosbag_out_path = '/home/woz4tetra/BabyBuggyROS/bags/back_hills_only_encoder_calibration_2018-04-07-18-03-42-edited.bag'
 
+rosbag_in_path = '/home/woz4tetra/BabyBuggyROS/bags/indoors_short_distance_2018-04-07-19-32-53.bag'
+rosbag_out_path = '/home/woz4tetra/BabyBuggyROS/bags/indoors_short_distance_2018-04-07-19-32-53-edited.bag'
 
 info_dict = yaml.load(subprocess.Popen(['rosbag', 'info', '--yaml', rosbag_in_path], stdout=subprocess.PIPE).communicate()[0])
 duration = info_dict['duration']
