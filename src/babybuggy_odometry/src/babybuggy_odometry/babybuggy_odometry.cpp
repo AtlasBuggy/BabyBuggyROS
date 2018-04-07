@@ -291,6 +291,6 @@ void BabybuggyOdometry::GPSCallback(const sensor_msgs::NavSatFix& msg)
 void BabybuggyOdometry::EncoderCallback(const std_msgs::Int64& msg)
 {
     // append the encoder's distance to encoder_ticks. The arduino produces distances relative to the last measurement.
-    encoder_ticks = msg.data;
+    encoder_ticks += msg.data;
     enc_data_received = true;
 }
