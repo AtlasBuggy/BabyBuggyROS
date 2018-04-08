@@ -105,9 +105,11 @@ void init() {
     count++;
     if (count % 1000000 == 0) cout << count << endl;
   }
+  cout << "final count: " << count << endl;
 
   ifstream maxFile;
   maxFile.open(file2);
+  cout << "starting to flood fill" << endl;
   while (!maxFile.eof()) {
     int a, v, dtheta, dx, dy;
     maxFile >> a;
@@ -116,9 +118,11 @@ void init() {
     maxFile >> dx;
     maxFile >> dy;
     floodfill(a,v,dtheta,dx,dy);
-    cout << a << " " << v << endl;
+    // cout << a << " " << v << endl;
   }
- 
+
+  cout << "ending flood fill" << endl;
+
   dataFile.close();
   maxFile.close();
 }

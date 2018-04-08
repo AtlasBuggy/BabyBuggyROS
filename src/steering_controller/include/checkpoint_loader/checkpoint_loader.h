@@ -21,6 +21,7 @@ private:
   float cur_pose_y;
   float cur_pose_th;
 
+  string checkpoint_dir;
   string filename;
   vector<float> checkpoint_x;
   vector<float> checkpoint_y;

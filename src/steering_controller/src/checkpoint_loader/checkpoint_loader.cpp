@@ -13,6 +13,7 @@ CheckpointLoader::CheckpointLoader(ros::NodeHandle* nodehandle) : nh(*nodehandle
 
   // get filename from parameter
   nh.param<std::string>("filename", filename, "checkpoints.txt");
+  nh.param<std::string>("checkpoint_dir", checkpoint_dir, "/home/nvidia/code/BabyBuggyROS/checkpoints");
 
   // load checkpoints from file
   loadCheckpoints();
@@ -31,10 +32,15 @@ void CheckpointLoader::run()
 
 void CheckpointLoader::loadCheckpoints()
 {
-  ifstream inFile(filename.c_str());
+  string file_path = checkpoint_dir + "/" + filename;
+
+  ROS_INFO("%s\n", file_path.c_str());
+
+  ifstream inFile(file_path.c_str());
 
   if (!inFile.is_open()) {
       ROS_INFO("%s does not exist.\n", filename.c_str());
+      ROS_INFO("Shutting down node.\n");
       ros::shutdown();
   }
 
@@ -43,7 +49,13 @@ void CheckpointLoader::loadCheckpoints()
   float tmp;
   while (inFile >> tmp){
     ROS_INFO("%f\n", tmp);
+    
   }
 
   inFile.close();
+}
+
+void CheckpointLoader::CurPoseCallback(const nav_msgs::Odometry& msg)
+{
+  return;
 }

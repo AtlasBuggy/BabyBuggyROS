@@ -158,9 +158,6 @@ target_link_libraries(checkpoint_loader_node
   checkpoint_loader
 )
 
-# add_executable(checkpoint_loader src/checkpoint_loader_node.cpp)
-# target_link_libraries(checkpoint_loader ${catkin_LIBRARIES})
-
 #############
 ## Install ##
 #############
