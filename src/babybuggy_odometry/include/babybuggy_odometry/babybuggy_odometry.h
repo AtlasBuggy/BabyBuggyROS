@@ -51,7 +51,6 @@ private:
     double odom_x, odom_y;
     double roll, pitch, yaw;
     ros::Time prev_time;
-    int64_t prev_encoder_ticks;
     int64_t encoder_ticks;
     tf::Quaternion current_imu_orientation;
     bool enc_data_received, imu_data_received;

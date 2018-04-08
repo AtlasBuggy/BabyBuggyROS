@@ -3,12 +3,14 @@
 #include <std_msgs/Int64.h>
 #include <Encoder.h>
 
-Encoder encoder1(3, 4);
+Encoder encoder1(4, 3);  // reverse encoder direction
 
 ros::NodeHandle nh;
 
-int prev_ticks = 0;
-int encoder_read = 0;
+int64_t prev_ticks = -1;
+int64_t encoder_read = 0;
+
+uint64_t prev_time = millis();
 
 std_msgs::Int64 enc_msg;
 ros::Publisher encoder("encoder", &enc_msg);
@@ -20,14 +22,16 @@ void setup() {
 
 void loop() {
     encoder_read = encoder1.read();
-    if (abs(encoder_read - prev_ticks) > 0x100000) {  // if int overflow occurred
-        encoder1.write(0);
-        prev_ticks = 0;
-        encoder_read = 0;
+    if (prev_time > millis()) {
+        prev_time = millis();
     }
-    enc_msg.data = encoder_read - prev_ticks;
-    prev_ticks = encoder_read;
+    if (encoder_read != prev_ticks || millis() - prev_time > 1000) {
+        prev_time = millis();
+        enc_msg.data = encoder_read - prev_ticks;
+        prev_ticks = encoder_read;
 
-    encoder.publish(&enc_msg);
+        encoder.publish(&enc_msg);
+    }
     nh.spinOnce();
+    delay(1);
 }

@@ -45,7 +45,6 @@ BabybuggyOdometry::BabybuggyOdometry(ros::NodeHandle* nodehandle):nh(*nodehandle
     odom_x = 0.0;
     odom_y = 0.0;
     encoder_ticks = 0;
-    prev_encoder_ticks = 0;
 
     ros::Time prev_time = ros::Time::now();
 
@@ -157,10 +156,8 @@ void BabybuggyOdometry::IMUCallback(const sensor_msgs::Imu& msg)
     // }
 
     // Use yaw and the encoder's banked_dist to calculate x y
-    double banked_dist = encoder_ticks * enc_ticks_to_m;
-    double delta_dist = banked_dist - prev_encoder_ticks * enc_ticks_to_m;
-
-    prev_encoder_ticks = encoder_ticks;
+    double delta_dist = encoder_ticks * enc_ticks_to_m;
+    encoder_ticks = 0;  // reset encoder ticks for the next check
 
     double delta_x = cos(yaw) * delta_dist;
     double delta_y = sin(yaw) * delta_dist;
@@ -182,21 +179,21 @@ void BabybuggyOdometry::IMUCallback(const sensor_msgs::Imu& msg)
     if (roll - prev_roll < -M_PI) {
         prev_roll += 2 * M_PI;
     }
-    
+
     if (pitch - prev_pitch > M_PI) {
         prev_pitch -= 2 * M_PI;
     }
     if (pitch - prev_pitch < -M_PI) {
         prev_pitch += 2 * M_PI;
     }
-    
+
     if (yaw - prev_yaw > M_PI) {
         prev_yaw -= 2 * M_PI;
     }
     if (yaw - prev_yaw < -M_PI) {
         prev_yaw += 2 * M_PI;
     }
-    
+
     double angular_x = roll - prev_roll / dt;
     double angular_y = pitch - prev_pitch / dt;
     double angular_z = yaw - prev_yaw / dt;
