@@ -1,9 +1,14 @@
 import sys
+import math
 import rosbag
 import time
 import yaml
 import os
 import subprocess
+from std_msgs.msg import Int64
+
+wheel_radius = 30.825
+ticks_per_rotation = 512
 
 def status(length, percent):
     sys.stdout.write('\x1B[2K') # Erase entire current line
@@ -19,8 +24,11 @@ def status(length, percent):
     sys.stdout.write(progress)
     sys.stdout.flush()
 
-rosbag_in_path = '/home/woz4tetra/BabyBuggyROS/bags/03-31-courserun.bag'
-rosbag_out_path = '/home/woz4tetra/BabyBuggyROS/bags/03-31-courserun-edited.bag'
+# rosbag_in_path = '/home/woz4tetra/BabyBuggyROS/bags/back_hills_only_encoder_calibration_2018-04-07-18-11-36.bag'
+# rosbag_out_path = '/home/woz4tetra/BabyBuggyROS/bags/back_hills_only_encoder_calibration_2018-04-07-18-11-36-edited.bag'
+
+rosbag_in_path = '/home/woz4tetra/BabyBuggyROS/bags/back_hills_only_encoder_calibration_2018-04-07-18-03-42.bag'
+rosbag_out_path = '/home/woz4tetra/BabyBuggyROS/bags/back_hills_only_encoder_calibration_2018-04-07-18-03-42-edited.bag'
 
 info_dict = yaml.load(subprocess.Popen(['rosbag', 'info', '--yaml', rosbag_in_path], stdout=subprocess.PIPE).communicate()[0])
 duration = info_dict['duration']
@@ -36,12 +44,14 @@ with rosbag.Bag(rosbag_out_path, 'w') as outbag:
         #     msg.angle_min = angle_max
         #     msg.angle_max = angle_min
         # delete computed old robot pose odometry calculations
-        if topic == "/robot_pose":
-            continue
-
-        # remove tf data
-        if topic == "/tf":
-            continue
+        if topic == "/encoder":
+            msg = Int64(int(msg.data / (2 * wheel_radius * math.pi / ticks_per_rotation)))
+        # if topic == "/robot_pose":
+        #     continue
+        #
+        # # remove tf data
+        # if topic == "/tf":
+        #     continue
 
         # modify tf data
         # if topic == "/tf" and msg.transforms:

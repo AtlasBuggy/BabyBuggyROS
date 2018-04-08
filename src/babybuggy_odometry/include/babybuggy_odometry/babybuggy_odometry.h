@@ -4,7 +4,7 @@
 #include "ros/ros.h"
 #include "sensor_msgs/NavSatFix.h"
 #include "sensor_msgs/Imu.h"
-#include "std_msgs/Float64.h"
+#include "std_msgs/Int64.h"
 #include "nav_msgs/Odometry.h"
 #include "robot_localization/SetDatum.h"
 #include <tf/transform_datatypes.h>
@@ -14,7 +14,7 @@
 
 using namespace std;
 
-class BabybuggyOdometry{
+class BabybuggyOdometry {
 private:
     ros::NodeHandle nh;  // ROS node handle
 
@@ -50,21 +50,24 @@ private:
     // Current scalar and vector values for measurements of the robot
     double odom_x, odom_y;
     double roll, pitch, yaw;
-    double banked_dist;  // distance relative to the last measurement
+    ros::Time prev_time;
+    int64_t encoder_ticks;
     tf::Quaternion current_imu_orientation;
     bool enc_data_received, imu_data_received;
     double initial_compass_yaw_deg;
+
+    double enc_ticks_to_m;
+    double wheel_radius;
+    int ticks_per_rotation;
 
     // transformation from the robot's frame to the odom frame
     tf::Transform odometry_transform;
 
     void GPSCallback(const sensor_msgs::NavSatFix& msg);
     void IMUCallback(const sensor_msgs::Imu& msg);
-    void EncoderCallback(const std_msgs::Float64& msg);
+    void EncoderCallback(const std_msgs::Int64& msg);
 
     double calculateBearing(sensor_msgs::NavSatFix currentMsg, sensor_msgs::NavSatFix prevMsg);
-
-    void run();
 
 public:
     BabybuggyOdometry(ros::NodeHandle* nodehandle);
@@ -90,11 +93,6 @@ public:
     static const size_t NUM_ROWS_GPS_COVARIANCE;
 
     static const size_t BEARING_ROLL_AVERAGE_SIZE;
-
-
-    // How often to report this node's status to the console or log
-    ros::Time debug_info_prev_time;
-    static const ros::Duration DEBUG_INFO_DELAY;
 };
 
 #endif // _BABYBUGGY_ODOMETRY_H_
