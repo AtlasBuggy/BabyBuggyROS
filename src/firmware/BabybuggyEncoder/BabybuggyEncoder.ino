@@ -20,7 +20,7 @@ void setup() {
 
 void loop() {
     encoder_read = encoder1.read();
-    if (encoder_read < prev_ticks) {  // if int overflow occurred
+    if (abs(encoder_read - prev_ticks) > 0x100000) {  // if int overflow occurred
         encoder1.write(0);
         prev_ticks = 0;
         encoder_read = 0;
