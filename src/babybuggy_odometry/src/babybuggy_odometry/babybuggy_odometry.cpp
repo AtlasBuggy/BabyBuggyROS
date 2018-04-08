@@ -19,11 +19,6 @@ const size_t BabybuggyOdometry::NUM_ROWS_GPS_COVARIANCE = 3;
 
 const size_t BabybuggyOdometry::BEARING_ROLL_AVERAGE_SIZE = 3;
 
-const ros::Duration BabybuggyOdometry::DEBUG_INFO_DELAY = ros::Duration(1.0);
-
-const double BabybuggyOdometry::WHEEL_RADIUS = 0.14605;
-const double BabybuggyOdometry::TICKS_PER_ROTATION = 256.0;
-
 BabybuggyOdometry::BabybuggyOdometry(ros::NodeHandle* nodehandle):nh(*nodehandle)
 {
     // setup subscribers
@@ -40,13 +35,22 @@ BabybuggyOdometry::BabybuggyOdometry(ros::NodeHandle* nodehandle):nh(*nodehandle
     client = nh.serviceClient<robot_localization::SetDatum>("/datum");
     datum_set = false;
 
+    // pull parameters from launch file
+    nh.param<double>("initial_compass_yaw_deg", initial_compass_yaw_deg, 0.0);
+    nh.param<double>("bearing_covariance", bearing_covariance, 0.0);
+    nh.param<double>("wheel_radius", wheel_radius, 1.0);
+    nh.param<int>("ticks_per_rotation", ticks_per_rotation, 1);
+
     // initialize odometry
     odom_x = 0.0;
     odom_y = 0.0;
     encoder_ticks = 0;
     prev_encoder_ticks = 0;
 
-    enc_ticks_to_m = 2.0 * M_PI * WHEEL_RADIUS / TICKS_PER_ROTATION;
+    ros::Time prev_time = ros::Time::now();
+
+    enc_ticks_to_m = 2.0 * M_PI * wheel_radius / (double)ticks_per_rotation;
+    ROS_INFO("Encoder ticks to meters: %f", enc_ticks_to_m);
 
     // Initial orientation is always 0
     current_imu_orientation.setRPY(0.0, 0.0, 0.0);
@@ -57,24 +61,42 @@ BabybuggyOdometry::BabybuggyOdometry(ros::NodeHandle* nodehandle):nh(*nodehandle
 
     bearing_msg.header.frame_id = GPS_FRAME_NAME;
 
-    // pull parameters from launch file
-    nh.param<double>("initial_compass_yaw_deg", initial_compass_yaw_deg, 0.0);
-    nh.param<double>("bearing_covariance", bearing_covariance, 0.0);
-
     size_t identity_col;
-    XmlRpc::XmlRpcValue _odom_launch_covariances;
-    if (nh.hasParam("odom_covariances")) {
-        nh.getParam("odom_covariances", _odom_launch_covariances);
-        ROS_ASSERT(_odom_launch_covariances.getType() == XmlRpc::XmlRpcValue::TypeArray);
-        ROS_ASSERT(_odom_launch_covariances.size() == NUM_ROWS_ODOM_COVARIANCE * NUM_ROWS_ODOM_COVARIANCE);
 
-        ROS_INFO("Using launch file's odometry covariances");
-        for (size_t i = 0; i < _odom_launch_covariances.size(); i++) {
-            odom_msg.pose.covariance[i] = _odom_launch_covariances[i];
+    XmlRpc::XmlRpcValue _odom_pos_launch_covariances;
+    if (nh.hasParam("odom_pos_covariances")) {
+        nh.getParam("odom_pos_covariances", _odom_pos_launch_covariances);
+        ROS_ASSERT(_odom_pos_launch_covariances.getType() == XmlRpc::XmlRpcValue::TypeArray);
+        ROS_ASSERT(_odom_pos_launch_covariances.size() == NUM_ROWS_ODOM_COVARIANCE * NUM_ROWS_ODOM_COVARIANCE);
+
+        ROS_INFO("Using launch file's odometry position covariances");
+        for (size_t i = 0; i < _odom_pos_launch_covariances.size(); i++) {
+            odom_msg.pose.covariance[i] = _odom_pos_launch_covariances[i];
         }
     }
     else {
         ROS_INFO("Using default odometry covariances");
+        // Set covariance to identity multiplied by scaling factor
+        identity_col = 0;
+        for (size_t row = 0; row < NUM_ROWS_ODOM_COVARIANCE * NUM_ROWS_ODOM_COVARIANCE; row += NUM_ROWS_ODOM_COVARIANCE) {
+            odom_msg.pose.covariance[row + identity_col] = 0.5;
+            identity_col++;
+        }
+    }
+
+    XmlRpc::XmlRpcValue _odom_vel_launch_covariances;
+    if (nh.hasParam("odom_vel_covariances")) {
+        nh.getParam("odom_vel_covariances", _odom_vel_launch_covariances);
+        ROS_ASSERT(_odom_vel_launch_covariances.getType() == XmlRpc::XmlRpcValue::TypeArray);
+        ROS_ASSERT(_odom_vel_launch_covariances.size() == NUM_ROWS_ODOM_COVARIANCE * NUM_ROWS_ODOM_COVARIANCE);
+
+        ROS_INFO("Using launch file's odometry covariances");
+        for (size_t i = 0; i < _odom_vel_launch_covariances.size(); i++) {
+            odom_msg.twist.covariance[i] = _odom_vel_launch_covariances[i];
+        }
+    }
+    else {
+        ROS_INFO("Using default odometry velocity covariances");
         // Set covariance to identity multiplied by scaling factor
         identity_col = 0;
         for (size_t row = 0; row < NUM_ROWS_ODOM_COVARIANCE * NUM_ROWS_ODOM_COVARIANCE; row += NUM_ROWS_ODOM_COVARIANCE) {
@@ -107,10 +129,11 @@ BabybuggyOdometry::BabybuggyOdometry(ros::NodeHandle* nodehandle):nh(*nodehandle
     // tf_broadcaster = tf::TransformBroadcaster();
 }
 
+
 void BabybuggyOdometry::IMUCallback(const sensor_msgs::Imu& msg)
 {
     // Convert sensor_msgs quaternion to tf quaternion
-    tf::Quaternion tmp;
+    static tf::Quaternion tmp;
 
     tmp.setValue(
         msg.orientation.x,
@@ -121,6 +144,9 @@ void BabybuggyOdometry::IMUCallback(const sensor_msgs::Imu& msg)
 
     // extract 3x3 rotation matrix from quaternion
     tf::Matrix3x3 m(tmp);
+    double prev_yaw = yaw;
+    double prev_pitch = pitch;
+    double prev_roll = roll;
     m.getEulerYPR(yaw, pitch, roll);  // convert to ypr and set current_imu_orientation
 
     yaw *= -1;
@@ -131,11 +157,49 @@ void BabybuggyOdometry::IMUCallback(const sensor_msgs::Imu& msg)
     // }
 
     // Use yaw and the encoder's banked_dist to calculate x y
-    double banked_dist = (encoder_ticks - prev_encoder_ticks) * enc_ticks_to_m;
+    double banked_dist = encoder_ticks * enc_ticks_to_m;
+    double delta_dist = banked_dist - prev_encoder_ticks * enc_ticks_to_m;
+
     prev_encoder_ticks = encoder_ticks;
 
-    odom_x += cos(yaw) * banked_dist;
-    odom_y += sin(yaw) * banked_dist;
+    double delta_x = cos(yaw) * delta_dist;
+    double delta_y = sin(yaw) * delta_dist;
+
+    odom_x += delta_x;
+    odom_y += delta_y;
+
+    ros::Time current_time = ros::Time::now();
+    ros::Duration delta_duration = prev_time - current_time;
+    double dt = delta_duration.toSec();
+    prev_time = current_time;
+
+    double velocity_x = delta_x / dt;
+    double velocity_y = delta_y / dt;
+
+    if (roll - prev_roll > M_PI) {
+        prev_roll -= 2 * M_PI;
+    }
+    if (roll - prev_roll < -M_PI) {
+        prev_roll += 2 * M_PI;
+    }
+    
+    if (pitch - prev_pitch > M_PI) {
+        prev_pitch -= 2 * M_PI;
+    }
+    if (pitch - prev_pitch < -M_PI) {
+        prev_pitch += 2 * M_PI;
+    }
+    
+    if (yaw - prev_yaw > M_PI) {
+        prev_yaw -= 2 * M_PI;
+    }
+    if (yaw - prev_yaw < -M_PI) {
+        prev_yaw += 2 * M_PI;
+    }
+    
+    double angular_x = roll - prev_roll / dt;
+    double angular_y = pitch - prev_pitch / dt;
+    double angular_z = yaw - prev_yaw / dt;
 
     // update orientation with adjusted yaw values
     current_imu_orientation.setRPY(roll, pitch, yaw);
@@ -143,34 +207,28 @@ void BabybuggyOdometry::IMUCallback(const sensor_msgs::Imu& msg)
     // Only produce odometry messages if both sensors (encoders and IMU) are initialized and producing data
     if (enc_data_received)
     {
-        // Form the odometry transform and broadcast it
-        // odometry_transform.setOrigin(tf::Vector3(odom_x, odom_y, 0.0));
-        // odometry_transform.setRotation(current_imu_orientation);
-
-        // tf_broadcaster.sendTransform(tf::StampedTransform(odometry_transform, ros::Time::now(), ODOM_FRAME_NAME, BASE_LINK_FRAME_NAME));
-
         // Form the odometry message with the IMU's orientation and accumulated distance in x and y
         odom_msg.header.stamp = ros::Time::now();
 
         // fill out and publish odom data
-        // odom_msg.pose.pose.position.x = banked_dist;
-        // odom_msg.pose.pose.position.y = 0.0;
         odom_msg.pose.pose.position.x = odom_x;
         odom_msg.pose.pose.position.y = odom_y;
         odom_msg.pose.pose.position.z = 0.0;
+
+        odom_msg.twist.twist.linear.x = velocity_x;
+        odom_msg.twist.twist.linear.y = velocity_y;
+        odom_msg.twist.twist.linear.z = 0.0;
 
         odom_msg.pose.pose.orientation.x = current_imu_orientation.x();
         odom_msg.pose.pose.orientation.y = current_imu_orientation.y();
         odom_msg.pose.pose.orientation.z = current_imu_orientation.z();
         odom_msg.pose.pose.orientation.w = current_imu_orientation.w();
 
-        odom_pub.publish(odom_msg);
-    }
+        odom_msg.twist.twist.angular.x = angular_x;
+        odom_msg.twist.twist.angular.y = angular_y;
+        odom_msg.twist.twist.angular.z = angular_z;
 
-    if (ros::Time::now() - debug_info_prev_time > DEBUG_INFO_DELAY) {
-        debug_info_prev_time = ros::Time::now();
-        ROS_INFO("Odom pose | X: %f, Y: %f, yaw: %f", odom_x, odom_y, yaw * 180 / M_PI);
-        ROS_INFO("Encoder | dist: %f, ticks: %li", banked_dist, encoder_ticks);
+        odom_pub.publish(odom_msg);
     }
 }
 
@@ -250,7 +308,6 @@ void BabybuggyOdometry::GPSCallback(const sensor_msgs::NavSatFix& msg)
                     sum_bearings += bearing_vector[i];
                 }
                 double avg_bearing = sum_bearings / (double)bearing_vector.size();
-                ROS_INFO("Current bearing: %0.4f", avg_bearing * 180.0 / M_PI);
 
                 tf::Quaternion bearing_quat;
                 bearing_quat.setRPY(0.0, 0.0, avg_bearing);

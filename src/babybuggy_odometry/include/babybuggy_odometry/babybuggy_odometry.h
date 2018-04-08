@@ -14,7 +14,7 @@
 
 using namespace std;
 
-class BabybuggyOdometry{
+class BabybuggyOdometry {
 private:
     ros::NodeHandle nh;  // ROS node handle
 
@@ -50,6 +50,7 @@ private:
     // Current scalar and vector values for measurements of the robot
     double odom_x, odom_y;
     double roll, pitch, yaw;
+    ros::Time prev_time;
     int64_t prev_encoder_ticks;
     int64_t encoder_ticks;
     tf::Quaternion current_imu_orientation;
@@ -57,6 +58,8 @@ private:
     double initial_compass_yaw_deg;
 
     double enc_ticks_to_m;
+    double wheel_radius;
+    int ticks_per_rotation;
 
     // transformation from the robot's frame to the odom frame
     tf::Transform odometry_transform;
@@ -66,8 +69,6 @@ private:
     void EncoderCallback(const std_msgs::Int64& msg);
 
     double calculateBearing(sensor_msgs::NavSatFix currentMsg, sensor_msgs::NavSatFix prevMsg);
-
-    void run();
 
 public:
     BabybuggyOdometry(ros::NodeHandle* nodehandle);
@@ -93,13 +94,6 @@ public:
     static const size_t NUM_ROWS_GPS_COVARIANCE;
 
     static const size_t BEARING_ROLL_AVERAGE_SIZE;
-
-    static const double WHEEL_RADIUS;
-    static const double TICKS_PER_ROTATION;
-
-    // How often to report this node's status to the console or log
-    ros::Time debug_info_prev_time;
-    static const ros::Duration DEBUG_INFO_DELAY;
 };
 
 #endif // _BABYBUGGY_ODOMETRY_H_

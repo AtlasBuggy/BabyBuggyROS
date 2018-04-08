@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <node pkg="tf2_ros" type="static_transform_publisher" name="laser_tf_broadcaster" args="0 0 0   1 0 0 0 base_link laser" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="gps_tf_broadcaster" args="0 0 0   0 0 0 1 base_link adafruit_gps" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="imu_tf_broadcaster" args="0.1016 0.0762 0.095   0 0 0 1 base_link imu" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="bno_tf_broadcaster" args="0.1016 0.0762 0.095   0 0 0 1 base_link Imu" />
+
+    <node name="babybuggy_error_checker" pkg="babybuggy_error_checker" type="babybuggy_error_checker_node" output="screen" required="true"/>
+
+    <node name="babybuggy_odometry" pkg="babybuggy_odometry" type="babybuggy_odometry_node" output="screen">
+        <param name="~initial_compass_yaw_deg" type="double" value="180.0"/>
+
+        <param name="~bearing_covariance" type="double" value="0.05"/>
+        <rosparam param="gps_covariances">
+            [
+                50.0, 0.0, 0.0,
+                0.0, 50.0, 0.0,
+                0.0, 0.0, 1000.0
+            ]
+        </rosparam>
+
+        <param name="~wheel_radius" type="double" value="0.030825"/>
+        <param name="~ticks_per_rotation" type="int" value="1024"/>
+
+        <rosparam param="odom_pos_covariances">
+            [
+                1.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
+                0.0, 0.0, 0.01, 0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0, 0.01, 0.0, 0.0,
+                0.0, 0.0, 0.0, 0.0, 0.01, 0.0,
+                0.0, 0.0, 0.0, 0.0, 0.0, 0.01
+            ]
+        </rosparam>
+
+        <rosparam param="odom_vel_covariances">
+            [
+                1.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
+                0.0, 0.0, 0.01, 0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0, 0.01, 0.0, 0.0,
+                0.0, 0.0, 0.0, 0.0, 0.01, 0.0,
+                0.0, 0.0, 0.0, 0.0, 0.0, 0.01
+            ]
+        </rosparam>
+    </node>
+</launch>
