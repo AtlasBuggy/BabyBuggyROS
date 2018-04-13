@@ -8,21 +8,21 @@
 
 #define LEFT 2048
 #define RIGHT 4096
-#define CENTER 400
+#define CENTER 365
 #define STOP 1500
 
 int steer_instruction = STOP;
 
 void joyCallback(const sensor_msgs::Joy& joy_msg) {
-    if (joy_msg.buttons[3] == 1) {
-        steer_instruction = CENTER;
-    } else if (joy_msg.buttons[4] == joy_msg.buttons[5]) {
-		steer_instruction = STOP;
-	} else if (joy_msg.buttons[4] > joy_msg.buttons[5]) {
-		steer_instruction = LEFT;
-	} else {
-		steer_instruction = RIGHT;
-	}
+  if (joy_msg.buttons[3] == 1) {
+      steer_instruction = CENTER;
+  } else if (joy_msg.axes[0] == 1) {
+    steer_instruction = LEFT;
+  } else if (joy_msg.axes[0] == -1) {
+    steer_instruction = RIGHT;
+  } else {
+    steer_instruction = CENTER;
+  }
 }
 
 
@@ -42,8 +42,7 @@ int main(int argc, char** argv) {
     while (node.ok())
     {
 		steer_msg.data = steer_instruction;
-
-    	steerPub.publish(steer_msg);
+    	  steerPub.publish(steer_msg);
         ros::spinOnce();
         loop_rate.sleep();
     }

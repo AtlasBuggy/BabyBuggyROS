@@ -9,7 +9,7 @@
     <!-- <node name="encoder" pkg="rosserial_python" type="serial_node.py" required="true">
         <param name="port" value="/dev/serial/by-id/usb-Silicon_Labs_CP2104_USB_to_UART_Bridge_Controller_00FEBA77-if00-port0"/>
     </node> -->
-    
+
     <node name="encoder" type="encoder_arduino_bridge_node" pkg="encoder_arduino_bridge" required="true" output="screen">
         <param name="~serial_port" type="string" value="/dev/serial/by-id/usb-Silicon_Labs_CP2104_USB_to_UART_Bridge_Controller_00FEBA77-if00-port0"/>
         <param name="~serial_baud" type="int" value="115200"/>
@@ -34,6 +34,14 @@
     </node>
 
     <node name="babybuggy_error_checker" pkg="babybuggy_error_checker" type="babybuggy_error_checker_node" output="screen" required="true"/>
+
+    <node pkg="usb_cam" type="usb_cam_node" name="usb_camera" output="screen" args="">
+        <param name="~video_device" type="string" value="/dev/video1"/>
+        <!-- <param name="~image_width" type="int" value="1280"/>
+        <param name="~image_height" type="int" value="960"/> -->
+        <param name="~camera_name" type="string" value="pushbar_cam1"/>
+
+    </node>
 
     <node pkg="rosbag" type="record" name="record" output="screen" args="-a -o /home/nvidia/bagfiles/babybuggy/"/>
 </launch>
