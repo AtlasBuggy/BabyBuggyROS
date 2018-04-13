@@ -2,9 +2,10 @@
 
 const string BabybuggyOdometry::BASE_LINK_FRAME_NAME = "base_link";
 const string BabybuggyOdometry::ODOM_FRAME_NAME = "odom";
-// const string BabybuggyOdometry::LASER_FRAME_NAME = "laser";
+const string BabybuggyOdometry::ENC_FRAME_NAME = "encoder";
+const string BabybuggyOdometry::LASER_FRAME_NAME = "laser";
 const string BabybuggyOdometry::IMU_FRAME_NAME = "imu";
-const string BabybuggyOdometry::GPS_FRAME_NAME = "GPS";
+const string BabybuggyOdometry::GPS_FRAME_NAME = "gps";
 
 const float BabybuggyOdometry::IMU_LASER_X = 0.1016;
 const float BabybuggyOdometry::IMU_LASER_Y = 0.0762;
@@ -16,6 +17,7 @@ const float BabybuggyOdometry::GPS_LASER_Z = 0.0;
 
 const size_t BabybuggyOdometry::NUM_ROWS_ODOM_COVARIANCE = 6;
 const size_t BabybuggyOdometry::NUM_ROWS_GPS_COVARIANCE = 3;
+const size_t BabybuggyOdometry::LEN_IMU_COVARIANCE = 9 * 3;
 
 const size_t BabybuggyOdometry::BEARING_ROLL_AVERAGE_SIZE = 3;
 
@@ -24,10 +26,12 @@ BabybuggyOdometry::BabybuggyOdometry(ros::NodeHandle* nodehandle):nh(*nodehandle
     // setup subscribers
     gps_sub = nh.subscribe("/GpsNavSat", 5, &BabybuggyOdometry::GPSCallback, this);
     imu_sub = nh.subscribe("/BNO055", 100, &BabybuggyOdometry::IMUCallback, this);
-    enc_sub = nh.subscribe("/encoder", 1000, &BabybuggyOdometry::EncoderCallback, this);
+    enc1_sub = nh.subscribe("/encoder1_raw", 1000, &BabybuggyOdometry::Encoder1Callback, this);
+    enc2_sub = nh.subscribe("/encoder2_raw", 1000, &BabybuggyOdometry::Encoder2Callback, this);
 
     // setup odom publisher
-    odom_pub = nh.advertise<nav_msgs::Odometry>("/naive_odom", 100);
+    odom_pub = nh.advertise<nav_msgs::Odometry>("/encoder_odom", 100);
+    imu_pub = nh.advertise<sensor_msgs::Imu>("/BNO055_covariances", 5);
     navsat_pub = nh.advertise<sensor_msgs::NavSatFix>("/raw_gps_navsat", 5);
     bearing_pub = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("/gps_bearing", 5);
 
@@ -38,25 +42,32 @@ BabybuggyOdometry::BabybuggyOdometry(ros::NodeHandle* nodehandle):nh(*nodehandle
     // pull parameters from launch file
     nh.param<double>("initial_compass_yaw_deg", initial_compass_yaw_deg, 0.0);
     nh.param<double>("bearing_covariance", bearing_covariance, 0.0);
-    nh.param<double>("wheel_radius", wheel_radius, 1.0);
+    nh.param<double>("wheel_encoder_radius", wheel_encoder_radius, 1.0);
+    nh.param<double>("wheel_encoder_dist", wheel_encoder_dist, 1.0);
     nh.param<int>("ticks_per_rotation", ticks_per_rotation, 1);
 
     // initialize odometry
     odom_x = 0.0;
     odom_y = 0.0;
-    encoder_ticks = 0;
+    odom_yaw = 0.0;
+    encoder1_ticks = 0;
+    encoder2_ticks = 0;
+    prev_encoder1_ticks = 0;
+    prev_encoder2_ticks = 0;
 
     ros::Time prev_time = ros::Time::now();
 
-    enc_ticks_to_m = 2.0 * M_PI * wheel_radius / (double)ticks_per_rotation;
+    enc_ticks_to_m = 2.0 * M_PI * wheel_encoder_radius / (double)ticks_per_rotation;
     ROS_INFO("Encoder ticks to meters: %f", enc_ticks_to_m);
 
     // Initial orientation is always 0
     current_imu_orientation.setRPY(0.0, 0.0, 0.0);
 
     // initialize odom_msg
-    odom_msg.header.frame_id = ODOM_FRAME_NAME;
+    odom_msg.header.frame_id = ENC_FRAME_NAME;
     odom_msg.child_frame_id = BASE_LINK_FRAME_NAME;
+
+    imu_msg.header.frame_id = IMU_FRAME_NAME;
 
     bearing_msg.header.frame_id = GPS_FRAME_NAME;
 
@@ -125,14 +136,126 @@ BabybuggyOdometry::BabybuggyOdometry(ros::NodeHandle* nodehandle):nh(*nodehandle
         }
     }
 
+    XmlRpc::XmlRpcValue _imu_launch_covariances;
+    if (nh.hasParam("imu_covariances")) {
+        nh.getParam("imu_covariances", _imu_launch_covariances);
+        ROS_ASSERT(_imu_launch_covariances.getType() == XmlRpc::XmlRpcValue::TypeArray);
+        ROS_ASSERT(_imu_launch_covariances.size() == LEN_IMU_COVARIANCE);
+
+        ROS_INFO("Using launch file's imu covariances");
+        for (size_t i = 0; i < 9; i++) {
+            imu_msg.orientation_covariance[i] = _imu_launch_covariances[i];
+        }
+        for (size_t i = 9; i < 18; i++) {
+            imu_msg.angular_velocity_covariance[i] = _imu_launch_covariances[i];
+        }
+        for (size_t i = 18; i < 27; i++) {
+            imu_msg.linear_acceleration_covariance[i] = _imu_launch_covariances[i];
+        }
+    }
+    else {
+        ROS_INFO("Using default IMU covariances");
+        // Set covariance of the imu (diagonal only. Assuming independence)
+        // [0, 1, 2]
+        // [3, 4, 5]
+        // [6, 7, 8]
+        imu_msg.orientation_covariance[0] = 0.01;
+        imu_msg.orientation_covariance[4] = 0.01;
+        imu_msg.orientation_covariance[8] = 0.01;
+
+        imu_msg.angular_velocity_covariance[0] = 0.2;
+        imu_msg.angular_velocity_covariance[4] = 0.2;
+        imu_msg.angular_velocity_covariance[8] = 0.2;
+
+        imu_msg.linear_acceleration_covariance[0] = 0.4;
+        imu_msg.linear_acceleration_covariance[4] = 0.4;
+        imu_msg.linear_acceleration_covariance[8] = 0.4;
+    }
+
     // tf_broadcaster = tf::TransformBroadcaster();
 }
 
+int BabybuggyOdometry::run()
+{
+    ros::Rate clock_rate(60);  // run loop at 60 Hz
+
+    tf::Quaternion odom_quat;
+
+    double delta1_dist, delta2_dist;
+    double prev_odom_yaw, constrained_odom_yaw;
+    double avg_dist, delta_x, delta_y;
+    double dt;
+    double velocity_x, velocity_y, angular_z;
+
+    while (ros::ok())
+    {
+        // let ROS process any events
+        ros::spinOnce();
+        clock_rate.sleep();
+
+        if (encoder1_ticks != prev_encoder1_ticks || encoder2_ticks != prev_encoder2_ticks)
+        {
+            ros::Time current_time = ros::Time::now();
+
+            delta1_dist = (encoder1_ticks - prev_encoder1_ticks) * enc_ticks_to_m;
+            delta2_dist = (encoder2_ticks - prev_encoder2_ticks) * enc_ticks_to_m;
+
+            prev_encoder1_ticks = encoder1_ticks;
+            prev_encoder2_ticks = encoder2_ticks;
+
+            prev_odom_yaw = odom_yaw;
+            odom_yaw += (delta1_dist - delta2_dist) / wheel_encoder_dist;
+            constrained_odom_yaw = abs(fmod(odom_yaw, 2.0 * M_PI));
+            avg_dist = (delta1_dist + delta2_dist) / 2.0;
+
+            delta_x = cos(constrained_odom_yaw) * avg_dist;
+            delta_y = sin(constrained_odom_yaw) * avg_dist;
+
+            odom_x += delta_x;
+            odom_y += delta_y;
+
+            odom_quat.setRPY(0.0, 0.0, constrained_odom_yaw);
+
+            ros::Duration delta_duration = prev_time - current_time;
+            dt = delta_duration.toSec();
+            prev_time = current_time;
+
+            velocity_x = delta_x / dt;
+            velocity_y = delta_y / dt;
+
+            angular_z = odom_yaw - prev_odom_yaw / dt;
+            // Form the odometry message with the IMU's orientation and accumulated distance in x and y
+            odom_msg.header.stamp = ros::Time::now();
+
+            // fill out and publish odom data
+            odom_msg.pose.pose.position.x = odom_x;
+            odom_msg.pose.pose.position.y = odom_y;
+            odom_msg.pose.pose.position.z = 0.0;
+
+            odom_msg.twist.twist.linear.x = velocity_x;
+            odom_msg.twist.twist.linear.y = velocity_y;
+            odom_msg.twist.twist.linear.z = 0.0;
+
+            odom_msg.pose.pose.orientation.x = odom_quat.x();
+            odom_msg.pose.pose.orientation.y = odom_quat.y();
+            odom_msg.pose.pose.orientation.z = odom_quat.z();
+            odom_msg.pose.pose.orientation.w = odom_quat.w();
+
+            odom_msg.twist.twist.angular.x = 0.0;
+            odom_msg.twist.twist.angular.y = 0.0;
+            odom_msg.twist.twist.angular.z = angular_z;
+
+            odom_pub.publish(odom_msg);
+        }
+    }
+    return 0;
+}
 
 void BabybuggyOdometry::IMUCallback(const sensor_msgs::Imu& msg)
 {
     // Convert sensor_msgs quaternion to tf quaternion
     static tf::Quaternion tmp;
+    static double prev_yaw, prev_pitch, prev_roll;
 
     tmp.setValue(
         msg.orientation.x,
@@ -143,9 +266,9 @@ void BabybuggyOdometry::IMUCallback(const sensor_msgs::Imu& msg)
 
     // extract 3x3 rotation matrix from quaternion
     tf::Matrix3x3 m(tmp);
-    double prev_yaw = yaw;
-    double prev_pitch = pitch;
-    double prev_roll = roll;
+    prev_yaw = yaw;
+    prev_pitch = pitch;
+    prev_roll = roll;
     m.getEulerYPR(yaw, pitch, roll);  // convert to ypr and set current_imu_orientation
 
     yaw *= -1;
@@ -155,78 +278,18 @@ void BabybuggyOdometry::IMUCallback(const sensor_msgs::Imu& msg)
     //     yaw += 2.0 * M_PI;
     // }
 
-    // Use yaw and the encoder's banked_dist to calculate x y
-    double delta_dist = encoder_ticks * enc_ticks_to_m;
-    encoder_ticks = 0;  // reset encoder ticks for the next check
-
-    double delta_x = cos(yaw) * delta_dist;
-    double delta_y = sin(yaw) * delta_dist;
-
-    odom_x += delta_x;
-    odom_y += delta_y;
-
-    ros::Time current_time = ros::Time::now();
-    ros::Duration delta_duration = prev_time - current_time;
-    double dt = delta_duration.toSec();
-    prev_time = current_time;
-
-    double velocity_x = delta_x / dt;
-    double velocity_y = delta_y / dt;
-
-    if (roll - prev_roll > M_PI) {
-        prev_roll -= 2 * M_PI;
-    }
-    if (roll - prev_roll < -M_PI) {
-        prev_roll += 2 * M_PI;
-    }
-
-    if (pitch - prev_pitch > M_PI) {
-        prev_pitch -= 2 * M_PI;
-    }
-    if (pitch - prev_pitch < -M_PI) {
-        prev_pitch += 2 * M_PI;
-    }
-
-    if (yaw - prev_yaw > M_PI) {
-        prev_yaw -= 2 * M_PI;
-    }
-    if (yaw - prev_yaw < -M_PI) {
-        prev_yaw += 2 * M_PI;
-    }
-
-    double angular_x = roll - prev_roll / dt;
-    double angular_y = pitch - prev_pitch / dt;
-    double angular_z = yaw - prev_yaw / dt;
-
     // update orientation with adjusted yaw values
     current_imu_orientation.setRPY(roll, pitch, yaw);
 
-    // Only produce odometry messages if both sensors (encoders and IMU) are initialized and producing data
-    if (enc_data_received)
-    {
-        // Form the odometry message with the IMU's orientation and accumulated distance in x and y
-        odom_msg.header.stamp = ros::Time::now();
+    imu_msg.header.stamp = msg.header.stamp;
+    imu_msg.orientation.x = current_imu_orientation.x();
+    imu_msg.orientation.y = current_imu_orientation.y();
+    imu_msg.orientation.z = current_imu_orientation.z();
+    imu_msg.orientation.w = current_imu_orientation.w();
+    imu_msg.angular_velocity = msg.angular_velocity;
+    imu_msg.linear_acceleration_covariance = msg.linear_acceleration_covariance;
 
-        // fill out and publish odom data
-        odom_msg.pose.pose.position.x = odom_x;
-        odom_msg.pose.pose.position.y = odom_y;
-        odom_msg.pose.pose.position.z = 0.0;
-
-        odom_msg.twist.twist.linear.x = velocity_x;
-        odom_msg.twist.twist.linear.y = velocity_y;
-        odom_msg.twist.twist.linear.z = 0.0;
-
-        odom_msg.pose.pose.orientation.x = current_imu_orientation.x();
-        odom_msg.pose.pose.orientation.y = current_imu_orientation.y();
-        odom_msg.pose.pose.orientation.z = current_imu_orientation.z();
-        odom_msg.pose.pose.orientation.w = current_imu_orientation.w();
-
-        odom_msg.twist.twist.angular.x = angular_x;
-        odom_msg.twist.twist.angular.y = angular_y;
-        odom_msg.twist.twist.angular.z = angular_z;
-
-        odom_pub.publish(odom_msg);
-    }
+    imu_pub.publish(imu_msg);
 }
 
 double BabybuggyOdometry::calculateBearing(sensor_msgs::NavSatFix currentMsg, sensor_msgs::NavSatFix prevMsg)
@@ -330,6 +393,8 @@ void BabybuggyOdometry::GPSCallback(const sensor_msgs::NavSatFix& msg)
             }
 
             prev_msg = msg;
+            // prev_msg.header.stamp = ros::Time::now();
+            prev_msg.header.frame_id = GPS_FRAME_NAME;
             prev_msg.position_covariance = gps_covariance_msg.position_covariance;
             prev_msg.position_covariance_type = msg.COVARIANCE_TYPE_APPROXIMATED;
         }
@@ -342,9 +407,10 @@ void BabybuggyOdometry::GPSCallback(const sensor_msgs::NavSatFix& msg)
 }
 
 
-void BabybuggyOdometry::EncoderCallback(const std_msgs::Int64& msg)
-{
-    // append the encoder's distance to encoder_ticks. The arduino produces distances relative to the last measurement.
-    encoder_ticks += msg.data;
-    enc_data_received = true;
+void BabybuggyOdometry::Encoder1Callback(const std_msgs::Int64& msg) {
+    encoder1_ticks = msg.data;
+}
+
+void BabybuggyOdometry::Encoder2Callback(const std_msgs::Int64& msg) {
+    encoder2_ticks = msg.data;
 }

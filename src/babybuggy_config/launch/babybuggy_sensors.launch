@@ -6,8 +6,13 @@
         <!-- <param name="inverted" value="true"/> -->
     </node>
 
-    <node name="encoder" pkg="rosserial_python" type="serial_node.py" required="true">
+    <!-- <node name="encoder" pkg="rosserial_python" type="serial_node.py" required="true">
         <param name="port" value="/dev/serial/by-id/usb-Silicon_Labs_CP2104_USB_to_UART_Bridge_Controller_00FEBA77-if00-port0"/>
+    </node> -->
+    
+    <node name="encoder" type="encoder_arduino_bridge_node" pkg="encoder_arduino_bridge" required="true" output="screen">
+        <param name="~serial_port" type="string" value="/dev/serial/by-id/usb-Silicon_Labs_CP2104_USB_to_UART_Bridge_Controller_00FEBA77-if00-port0"/>
+        <param name="~serial_baud" type="int" value="115200"/>
     </node>
 
     <node name="steering" pkg="rosserial_python" type="serial_node.py" required="true">

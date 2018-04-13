@@ -1,3 +1,6 @@
 [submodule "src/gpuSLAM"]
 	path = src/gpuSLAM
 	url = https://github.com/nischalkn/gpuSLAM
+[submodule "src/firmware/lib/Encoder"]
+	path = src/firmware/lib/Encoder
+	url = https://github.com/PaulStoffregen/Encoder.git

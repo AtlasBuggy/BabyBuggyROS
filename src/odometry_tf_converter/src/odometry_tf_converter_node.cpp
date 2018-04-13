@@ -38,7 +38,7 @@ int main(int argc, char** argv){
     odom_broadcaster = new tf::TransformBroadcaster();
 
     string odom_sub_name;
-    n.param<string>("odom_sub_name", odom_sub_name, "/naive_odom");
+    n.param<string>("odom_sub_name", odom_sub_name, "/encoder_odom");
 
     ros::Subscriber odom_sub = n.subscribe(odom_sub_name, 1000, &odometryCallback);
 

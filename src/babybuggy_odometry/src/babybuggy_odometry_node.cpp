@@ -7,6 +7,7 @@ int main(int argc, char **argv)
 
     BabybuggyOdometry broadcaster(&nh);
 
-    ros::spin();
-    return 0;
+    int err = broadcaster.run();
+
+    return err;
 }
