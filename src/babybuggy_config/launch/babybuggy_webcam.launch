@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+
+    <include file="$(find video_stream_opencv)/launch/camera.launch" >
+        <!-- node name and ros graph name -->
+        <arg name="camera_name" value="webcam" />
+
+        <!-- image size -->
+        <arg name="width" value="1280" />
+        <arg name="height" value="720" />
+
+        <!-- means video device 0, /dev/video0 -->
+        <arg name="video_stream_provider" value="1" />
+
+        <!-- set camera fps to (if the device allows) -->
+        <arg name="set_camera_fps" value="30"/>
+
+        <!-- set buffer queue size of frame capturing to -->
+        <arg name="buffer_queue_size" value="100" />
+
+        <!-- throttling the querying of frames to -->
+        <arg name="fps" value="30" />
+
+        <!-- setting frame_id -->
+        <arg name="frame_id" value="webcam" />
+
+        <!-- camera info loading, take care as it needs the "file:///" at the start , e.g.:
+        "file:///$(find your_camera_package)/config/your_camera.yaml" -->
+        <arg name="camera_info_url" value="" />
+
+        <!-- flip the image horizontally (mirror it) -->
+        <arg name="flip_horizontal" value="false" />
+
+        <!-- flip the image vertically -->
+        <arg name="flip_vertical" value="false" />
+
+        <!-- visualize on an image_view window the stream generated -->
+        <arg name="visualize" value="false" />
+    </include>
+
+    <group ns="webcam">
+
+        <node name="audio_capture" pkg="audio_capture" type="audio_capture" output="screen" required="true">
+            <param name="bitrate" value="128"/>
+
+            <!-- arecord -L will show available input devices, use the car number as
+            the first number and the subdevice number as the second in a string
+            like hw:1,0 -->
+            <param name="device" value="plughw:CARD=C930e,DEV=0"/>
+
+            <param name="channels" value="1"/>
+            <param name="sample_rate" value="16000"/>
+            <param name="format" value="mp3"/>
+        </node>
+    </group>
+
+    <node pkg="rosbag" type="record" name="record" output="screen" required="true" args="/webcam/image_raw /webcam/audio --output-prefix=$(find babybuggy_config)/bags/webcam"/>
+</launch>

@@ -130,6 +130,23 @@ int64_t EncoderArduinoBridge::parseSegmentedInt64(string s) {
     return (part1 << 32) | part2;
 }
 
+void EncoderArduinoBridge::parseToken(string token) {
+    switch (token.at(0)) {
+        case 't': ROS_DEBUG("encoder arduino time: %s", token.substr(1).c_str()); break;
+        case 'a':
+            enc1_msg.data = parseSegmentedInt64(token.substr(1));
+            enc1_pub.publish(enc1_msg);
+            break;
+        case 'b':
+            enc2_msg.data = parseSegmentedInt64(token.substr(1));
+            enc2_pub.publish(enc2_msg);
+            break;
+        default:
+            ROS_WARN("Invalid segment type! Segment: '%s', packet: '%s'", token.c_str(), serial_buffer.c_str());
+            break;
+    }
+}
+
 void EncoderArduinoBridge::parseEncoderMessage()
 {
     // strip off header and the trailing newline character
@@ -144,26 +161,16 @@ void EncoderArduinoBridge::parseEncoderMessage()
         // extract the next segment of data (serial_buffer will be erased up to pos at the end)
         token = serial_buffer.substr(0, pos);
         if (token.size() == 0) {
-            return;
+            continue;
         }
 
-        // parse differently based on the first character of the segment (e.g. 'ex6.102' is the euler angle in the x axis)
-        switch (token.at(0)) {
-            case 't': ROS_DEBUG("encoder arduino time: %s", token.substr(1).c_str()); break;
-            case '1':
-                enc1_msg.data = parseSegmentedInt64(token.substr(1));
-                enc1_pub.publish(enc1_msg);
-                break;
-            case '2':
-                enc2_msg.data = parseSegmentedInt64(token.substr(1));
-                enc2_pub.publish(enc2_msg);
-                break;
-            default:
-                ROS_WARN("Invalid segment type! Segment: '%s', packet: '%s'", token.c_str(), serial_buffer.c_str());
-                break;
-        }
+        parseToken(token);
 
         // erase up to the end of the current token plus the delimiter character
         serial_buffer.erase(0, pos + MESSAGE_DELIMITER.length());
     }
+
+    // parse the rest of the serial buffer except for end character
+    token = serial_buffer.substr(0, serial_buffer.length() - 1);
+    parseToken(token);
 }

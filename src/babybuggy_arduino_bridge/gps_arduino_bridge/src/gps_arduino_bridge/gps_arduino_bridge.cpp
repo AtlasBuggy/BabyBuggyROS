@@ -140,6 +140,65 @@ int GPSArduinoBridge::run()
 	return 0;
 }
 
+void GPSArduinoBridge::parseToken(string token)
+{
+	// parse differently based on the first character of the segment (e.g. 'ga40.442535' is latitude in degrees)
+	switch (token.at(0)) {
+		case 't':
+			switch (token.at(1)) {
+				case 'd': days = STR_TO_INT(token.substr(2)); break;  // days
+				case 'b': months = STR_TO_INT(token.substr(2)); break;  // months
+				case 'y': years = STR_TO_INT(token.substr(2)); break;  // years
+				case 'H': hours = STR_TO_INT(token.substr(2)); break;  // hours
+				case 'M': minutes = STR_TO_INT(token.substr(2)); break;  // minutes
+				case 'S': seconds = STR_TO_INT(token.substr(2)); break;  // seconds
+				case 's': milliseconds = STR_TO_INT(token.substr(2)); break;  // milliseconds
+			}
+			break;
+		case 'f':
+			switch (token.at(1)) {
+				case 'f':
+					if (STR_TO_INT(token.substr(2)) > 0) {
+						gps_msg.status.status = gps_msg.status.STATUS_FIX;
+						navsat_msg.status.status = navsat_msg.status.STATUS_FIX;
+					}
+					else {
+						gps_msg.status.status = gps_msg.status.STATUS_NO_FIX;
+						navsat_msg.status.status = navsat_msg.status.STATUS_NO_FIX;
+					}
+					break;
+				case 'q': ROS_DEBUG("fix quality: %lld", STR_TO_INT(token.substr(2))); break;
+			}
+			break;
+		case 'g':
+			switch (token.at(1)) {
+				case 'a':
+					gps_msg.latitude = STR_TO_FLOAT(token.substr(2));
+					navsat_msg.latitude = gps_msg.latitude;
+					break;
+				case 'o':
+					gps_msg.longitude = STR_TO_FLOAT(token.substr(2));
+					navsat_msg.longitude = gps_msg.longitude;
+					break;
+			}
+			break;
+		case 'x':
+			switch (token.at(1)) {
+				case 's': gps_msg.speed = STR_TO_FLOAT(token.substr(2)) * 1000; break;  // convert km/s to m/s
+				case 'l':
+					gps_msg.altitude = STR_TO_FLOAT(token.substr(2));
+					navsat_msg.altitude = gps_msg.altitude;
+					break;
+				case 'm': gps_msg.status.satellites_used = STR_TO_INT(token.substr(2)); break;
+				case 'h': gps_msg.hdop = STR_TO_INT(token.substr(2)); break;
+			}
+			break;
+		default:
+			ROS_WARN("Invalid segment type! Segment: '%s', packet: '%s'", token.c_str(), serial_buffer.c_str());
+			break;
+	}
+}
+
 void GPSArduinoBridge::parseGPSMessage()
 {
 	// strip off header and the trailing newline character
@@ -163,65 +222,15 @@ void GPSArduinoBridge::parseGPSMessage()
 			return;
 		}
 
-		// parse differently based on the first character of the segment (e.g. 'ga40.442535' is latitude in degrees)
-		switch (token.at(0)) {
-			case 't':
-				switch (token.at(1)) {
-					case 'd': days = STR_TO_INT(token.substr(2)); break;  // days
-					case 'b': months = STR_TO_INT(token.substr(2)); break;  // months
-					case 'y': years = STR_TO_INT(token.substr(2)); break;  // years
-					case 'H': hours = STR_TO_INT(token.substr(2)); break;  // hours
-					case 'M': minutes = STR_TO_INT(token.substr(2)); break;  // minutes
-					case 'S': seconds = STR_TO_INT(token.substr(2)); break;  // seconds
-					case 's': milliseconds = STR_TO_INT(token.substr(2)); break;  // milliseconds
-				}
-				break;
-			case 'f':
-				switch (token.at(1)) {
-					case 'f':
-						if (STR_TO_INT(token.substr(2)) > 0) {
-							gps_msg.status.status = gps_msg.status.STATUS_FIX;
-							navsat_msg.status.status = navsat_msg.status.STATUS_FIX;
-						}
-						else {
-							gps_msg.status.status = gps_msg.status.STATUS_NO_FIX;
-							navsat_msg.status.status = navsat_msg.status.STATUS_NO_FIX;
-						}
-						break;
-					case 'q': ROS_DEBUG("fix quality: %lld", STR_TO_INT(token.substr(2))); break;
-				}
-				break;
-			case 'g':
-				switch (token.at(1)) {
-					case 'a':
-						gps_msg.latitude = STR_TO_FLOAT(token.substr(2));
-						navsat_msg.latitude = gps_msg.latitude;
-						break;
-					case 'o':
-						gps_msg.longitude = STR_TO_FLOAT(token.substr(2));
-						navsat_msg.longitude = gps_msg.longitude;
-						break;
-				}
-				break;
-			case 'x':
-				switch (token.at(1)) {
-					case 's': gps_msg.speed = STR_TO_FLOAT(token.substr(2)) * 1000; break;  // convert km/s to m/s
-					case 'l':
-						gps_msg.altitude = STR_TO_FLOAT(token.substr(2));
-						navsat_msg.altitude = gps_msg.altitude;
-						break;
-					case 'm': gps_msg.status.satellites_used = STR_TO_INT(token.substr(2)); break;
-					case 'h': gps_msg.hdop = STR_TO_INT(token.substr(2)); break;
-				}
-				break;
-			default:
-				ROS_WARN("Invalid segment type! Segment: '%s', packet: '%s'", token.c_str(), serial_buffer.c_str());
-				break;
-		}
+		parseToken(token);
 
 		// erase up to the end of the current token plus the delimiter character
 		serial_buffer.erase(0, pos + MESSAGE_DELIMITER.length());
 	}
+
+	// parse the rest of the serial buffer except for end character
+    token = serial_buffer.substr(0, serial_buffer.length() - 1);
+    parseToken(token);
 
 	if (ros::Time::now() - debug_info_prev_time > debug_info_delay) {
         debug_info_prev_time = ros::Time::now();

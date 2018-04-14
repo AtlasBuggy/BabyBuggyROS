@@ -169,6 +169,74 @@ int Bno055ArduinoBridge::run()
     return 0;
 }
 
+void Bno055ArduinoBridge::parseToken(string token) {
+    // parse differently based on the first character of the segment (e.g. 'ex6.102' is the euler angle in the x axis)
+    switch (token.at(0)) {
+        case 't': ROS_DEBUG("imu arduino time: %s", token.substr(1).c_str()); break;
+        case 'e':
+            switch (token.at(1)) {
+                case 'x': euler_roll = M_PI / 180.0 * STR_TO_FLOAT(token.substr(2)); break;
+                case 'y': euler_pitch = M_PI / 180.0 * STR_TO_FLOAT(token.substr(2)); break;
+                case 'z': euler_yaw = M_PI / 180.0 * STR_TO_FLOAT(token.substr(2)); break;
+            }
+            if (!euler_data_received) {
+                if (euler_roll != 0.0 || euler_pitch != 0.0 || euler_yaw != 0.0) { // sensor will report 0's at the very beginning
+                    initial_euler_roll = euler_roll;
+                    initial_euler_pitch = euler_pitch;
+                    initial_euler_yaw = euler_yaw;
+                    euler_data_received = true;
+                }
+            }
+
+            euler_roll = std::fmod(euler_roll - initial_euler_roll, 2.0 * M_PI);
+            euler_pitch = std::fmod(euler_pitch - initial_euler_pitch, 2.0 * M_PI);
+            euler_yaw = std::fmod(euler_yaw - initial_euler_yaw, 2.0 * M_PI);
+            break;
+        // case 'a':
+        //
+        //     break;
+        case 'g':
+            gyro_data_received = true;
+            switch (token.at(1)) {
+                case 'x': imu_msg.angular_velocity.x = STR_TO_FLOAT(token.substr(2)); break;
+                case 'y': imu_msg.angular_velocity.y = STR_TO_FLOAT(token.substr(2)); break;
+                case 'z': imu_msg.angular_velocity.z = STR_TO_FLOAT(token.substr(2)); break;
+            }
+            break;
+        // case 'm':
+        //
+        //     break;
+        case 'l':
+            linaccel_data_received = true;
+            switch (token.at(1)) {
+                case 'x': imu_msg.linear_acceleration.x = STR_TO_FLOAT(token.substr(2)); break;
+                case 'y': imu_msg.linear_acceleration.y = STR_TO_FLOAT(token.substr(2)); break;
+                case 'z': imu_msg.linear_acceleration.z = STR_TO_FLOAT(token.substr(2)); break;
+            }
+            break;
+        case 'q':
+            quat_data_received = true;
+            switch (token.at(1)) {
+                case 'w': imu_msg.orientation.w = STR_TO_FLOAT(token.substr(2)); break;
+                case 'x': imu_msg.orientation.x = STR_TO_FLOAT(token.substr(2)); break;
+                case 'y': imu_msg.orientation.y = STR_TO_FLOAT(token.substr(2)); break;
+                case 'z': imu_msg.orientation.z = STR_TO_FLOAT(token.substr(2)); break;
+            }
+            break;
+        case 's':
+            switch (token.at(1)) {
+                case 's': system_status = STR_TO_INT(token.substr(2)); break;
+                case 'g': accel_status = STR_TO_INT(token.substr(2)); break;
+                case 'a': gyro_status = STR_TO_INT(token.substr(2)); break;
+                case 'm': mag_status = STR_TO_INT(token.substr(2)); break;
+            }
+            break;
+        default:
+            ROS_WARN("Invalid segment type! Segment: '%s', packet: '%s'", token.c_str(), serial_buffer.c_str());
+            break;
+    }
+}
+
 void Bno055ArduinoBridge::parseImuMessage()
 {
     // strip off header and the trailing newline character
@@ -187,78 +255,18 @@ void Bno055ArduinoBridge::parseImuMessage()
         // extract the next segment of data (serial_buffer will be erased up to pos at the end)
         token = serial_buffer.substr(0, pos);
         if (token.size() == 0) {
-            return;
+            continue;
         }
 
-        // parse differently based on the first character of the segment (e.g. 'ex6.102' is the euler angle in the x axis)
-        switch (token.at(0)) {
-            case 't': ROS_DEBUG("imu arduino time: %s", token.substr(1).c_str()); break;
-            case 'e':
-                switch (token.at(1)) {
-                    case 'x': euler_roll = M_PI / 180.0 * STR_TO_FLOAT(token.substr(2)); break;
-                    case 'y': euler_pitch = M_PI / 180.0 * STR_TO_FLOAT(token.substr(2)); break;
-                    case 'z': euler_yaw = M_PI / 180.0 * STR_TO_FLOAT(token.substr(2)); break;
-                }
-                if (!euler_data_received) {
-                    if (euler_roll != 0.0 || euler_pitch != 0.0 || euler_yaw != 0.0) { // sensor will report 0's at the very beginning
-                        initial_euler_roll = euler_roll;
-                        initial_euler_pitch = euler_pitch;
-                        initial_euler_yaw = euler_yaw;
-                        euler_data_received = true;
-                    }
-                }
-
-                euler_roll = std::fmod(euler_roll - initial_euler_roll, 2.0 * M_PI);
-                euler_pitch = std::fmod(euler_pitch - initial_euler_pitch, 2.0 * M_PI);
-                euler_yaw = std::fmod(euler_yaw - initial_euler_yaw, 2.0 * M_PI);
-                break;
-            // case 'a':
-            //
-            //     break;
-            case 'g':
-                gyro_data_received = true;
-                switch (token.at(1)) {
-                    case 'x': imu_msg.angular_velocity.x = STR_TO_FLOAT(token.substr(2)); break;
-                    case 'y': imu_msg.angular_velocity.y = STR_TO_FLOAT(token.substr(2)); break;
-                    case 'z': imu_msg.angular_velocity.z = STR_TO_FLOAT(token.substr(2)); break;
-                }
-                break;
-            // case 'm':
-            //
-            //     break;
-            case 'l':
-                linaccel_data_received = true;
-                switch (token.at(1)) {
-                    case 'x': imu_msg.linear_acceleration.x = STR_TO_FLOAT(token.substr(2)); break;
-                    case 'y': imu_msg.linear_acceleration.y = STR_TO_FLOAT(token.substr(2)); break;
-                    case 'z': imu_msg.linear_acceleration.z = STR_TO_FLOAT(token.substr(2)); break;
-                }
-                break;
-            case 'q':
-                quat_data_received = true;
-                switch (token.at(1)) {
-                    case 'w': imu_msg.orientation.w = STR_TO_FLOAT(token.substr(2)); break;
-                    case 'x': imu_msg.orientation.x = STR_TO_FLOAT(token.substr(2)); break;
-                    case 'y': imu_msg.orientation.y = STR_TO_FLOAT(token.substr(2)); break;
-                    case 'z': imu_msg.orientation.z = STR_TO_FLOAT(token.substr(2)); break;
-                }
-                break;
-            case 's':
-                switch (token.at(1)) {
-                    case 's': system_status = STR_TO_INT(token.substr(2)); break;
-                    case 'g': accel_status = STR_TO_INT(token.substr(2)); break;
-                    case 'a': gyro_status = STR_TO_INT(token.substr(2)); break;
-                    case 'm': mag_status = STR_TO_INT(token.substr(2)); break;
-                }
-                break;
-            default:
-                ROS_WARN("Invalid segment type! Segment: '%s', packet: '%s'", token.c_str(), serial_buffer.c_str());
-                break;
-        }
+        parseToken(token);
 
         // erase up to the end of the current token plus the delimiter character
         serial_buffer.erase(0, pos + MESSAGE_DELIMITER.length());
     }
+
+    // parse the rest of the serial buffer except for end character
+    token = serial_buffer.substr(0, serial_buffer.length() - 1);
+    parseToken(token);
 
     // warn the user if the IMU's status has changed
     if (system_status != prev_system_status) {

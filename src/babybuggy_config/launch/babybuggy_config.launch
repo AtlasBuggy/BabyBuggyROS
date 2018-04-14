@@ -5,11 +5,11 @@
     <node pkg="tf2_ros" type="static_transform_publisher" name="imu_tf_broadcaster" args="0.1016 0.0762 0.095   0 0 0 1 base_link imu" />
     <node pkg="tf2_ros" type="static_transform_publisher" name="enc_tf_broadcaster" args="0 0 0   1 0 0 0 base_link encoder" />
 
-    <node name="babybuggy_odometry" pkg="babybuggy_odometry" type="babybuggy_odometry_node" output="screen">
+    <node name="babybuggy_odometry" pkg="babybuggy_odometry" type="babybuggy_odometry_node" output="screen" required="true">
         <param name="~initial_compass_yaw_deg" type="double" value="180.0"/>
 
         <param name="~wheel_encoder_radius" type="double" value="0.030825"/>
-        <param name="~wheel_encoder_dist" type="double" value="0.1"/>
+        <param name="~wheel_encoder_dist" type="double" value="0.152"/>
         <param name="~ticks_per_rotation" type="int" value="1024"/>
 
         <param name="~bearing_covariance" type="double" value="0.05"/>
@@ -56,7 +56,7 @@
 
                 2.0, 0.0, 0.0,
                 0.0, 2.0, 0.0,
-                0.0, 0.0, 2.0,
+                0.0, 0.0, 2.0
             ]
         </rosparam>
     </node>

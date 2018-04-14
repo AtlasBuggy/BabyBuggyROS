@@ -31,14 +31,16 @@ private:
     // Data subscribers
     ros::Subscriber gps_sub;
     ros::Subscriber imu_sub;
-    ros::Subscriber enc_sub;
+    ros::Subscriber enc1_sub;
+    ros::Subscriber enc2_sub;
     ros::Subscriber odom_sub;
     ros::Subscriber lidar_sub;
     ros::Subscriber bearing_sub;
 
     void GPSCallback(const sensor_msgs::NavSatFix& msg);
     void IMUCallback(const sensor_msgs::Imu& msg);
-    void EncoderCallback(const std_msgs::Int64& msg);
+    void Encoder1Callback(const std_msgs::Int64& msg);
+    void Encoder2Callback(const std_msgs::Int64& msg);
     void OdomCallback(const nav_msgs::Odometry& msg);
     void LidarCallback(const sensor_msgs::LaserScan& msg);
     void BearingCallback(const geometry_msgs::PoseWithCovarianceStamped& msg);
@@ -55,8 +57,10 @@ private:
     bool gps_status;
     double latitude, longitude;
     double bearing;
-    int64_t encoder_ticks, largest_tick, smallest_tick;
-    ros::Time enc_current_time;
+    int64_t encoder1_ticks, largest1_tick, smallest1_tick;
+    int64_t encoder2_ticks, largest2_tick, smallest2_tick;
+    ros::Time enc1_current_time;
+    ros::Time enc2_current_time;
 
 public:
     ErrorChecker(ros::NodeHandle* nodehandle);

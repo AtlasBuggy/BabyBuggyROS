@@ -146,11 +146,11 @@ BabybuggyOdometry::BabybuggyOdometry(ros::NodeHandle* nodehandle):nh(*nodehandle
         for (size_t i = 0; i < 9; i++) {
             imu_msg.orientation_covariance[i] = _imu_launch_covariances[i];
         }
-        for (size_t i = 9; i < 18; i++) {
-            imu_msg.angular_velocity_covariance[i] = _imu_launch_covariances[i];
+        for (size_t i = 0; i < 9; i++) {
+            imu_msg.angular_velocity_covariance[i] = _imu_launch_covariances[i + 9];
         }
-        for (size_t i = 18; i < 27; i++) {
-            imu_msg.linear_acceleration_covariance[i] = _imu_launch_covariances[i];
+        for (size_t i = 0; i < 9; i++) {
+            imu_msg.linear_acceleration_covariance[i] = _imu_launch_covariances[i + 18];
         }
     }
     else {

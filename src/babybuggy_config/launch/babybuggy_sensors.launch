@@ -33,15 +33,8 @@
         <param name="~serial_baud" type="int" value="9600"/>
     </node>
 
-    <node name="babybuggy_error_checker" pkg="babybuggy_error_checker" type="babybuggy_error_checker_node" output="screen" required="true"/>
-
-    <node pkg="usb_cam" type="usb_cam_node" name="usb_camera" output="screen" args="">
-        <param name="~video_device" type="string" value="/dev/video1"/>
-        <!-- <param name="~image_width" type="int" value="1280"/>
-        <param name="~image_height" type="int" value="960"/> -->
-        <param name="~camera_name" type="string" value="pushbar_cam1"/>
-
-    </node>
-
-    <node pkg="rosbag" type="record" name="record" output="screen" args="-a -o /home/nvidia/bagfiles/babybuggy/"/>
+    <node pkg="rosbag" type="record" name="record" output="screen" required="true"
+        args="AdafruitGPS BNO055 BNO055_covariances GpsNavSat encoder1_raw encoder2_raw scan
+              --output-prefix=$(find babybuggy_config)/bags/sensors"/>
+         <!-- -x '/webcam/(.*)|/encoder_odom|/tf_static -->
 </launch>

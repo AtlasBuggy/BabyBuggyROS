@@ -69,6 +69,7 @@ private:
 
     // Helper methods for parsing the IMU's data
     void eulerToQuat(sensor_msgs::Imu &imu_msg, float roll, float pitch, float yaw);
+    void parseToken(string token);
     void parseImuMessage();
 
 public:

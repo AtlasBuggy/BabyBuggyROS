@@ -30,8 +30,9 @@ private:
     void waitForPacket(const string packet);
 
     // Helper methods for parsing the encoder's data
-    void parseEncoderMessage();
     int64_t parseSegmentedInt64(string s);
+    void parseEncoderMessage();
+    void parseToken(string token);
 
 public:
     EncoderArduinoBridge(ros::NodeHandle* nodehandle);

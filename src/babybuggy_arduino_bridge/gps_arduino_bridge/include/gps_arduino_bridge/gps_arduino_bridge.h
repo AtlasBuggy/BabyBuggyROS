@@ -47,7 +47,8 @@ private:
 
 	// Helper method for parsing the GPS's data
 	void parseGPSMessage();
-
+	void parseToken(string token);
+	
 	// scalar containers for the time. Translated to unix timestamps
 	int days;
 	int months;
