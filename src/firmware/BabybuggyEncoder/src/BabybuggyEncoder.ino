@@ -57,25 +57,23 @@ void loop() {
         if (prev_time > millis()) {
             prev_time = millis();
         }
-        if (encoder1_read != prev1_ticks || encoder2_read != prev2_ticks || millis() - prev_time > 1000) {
+        if (millis() - prev_time > 100) {
             prev_time = millis();
 
             Serial.print("enc\tt");
             Serial.print(millis());
 
-            if (encoder1_read != prev1_ticks) {
-                Serial.print("\t1");
-                print_int64(encoder1_read);
-            }
-            if (encoder2_read != prev2_ticks) {
-                Serial.print("\t2");
-                print_int64(encoder2_read);
-            }
+            Serial.print("\t1");
+            print_int64(encoder1_read);
+
+            Serial.print("\t2");
+            print_int64(encoder2_read);
+
             Serial.print('\n');
 
             prev1_ticks = encoder1_read;
             prev2_ticks = encoder2_read;
         }
-        delay(1);
+        // delay(1);
     }
 }
