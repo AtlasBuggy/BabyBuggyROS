@@ -1,11 +1,5 @@
 #include <encoder_arduino_bridge/encoder_arduino_bridge.h>
 
-// string parsing macros
-#define STR_TO_FLOAT(string)  strtof((string).c_str(), 0)
-#define STR_TO_INT(string)  string_to_int64(string)
-
-// #define USE_SYSTEM_CHECK  // Use the system's status value to determine if data should be published
-
 // Constant definitions
 const string EncoderArduinoBridge::NODE_NAME = "encoder_arduino_bridge";
 const string EncoderArduinoBridge::PACKET_END = "\n";
@@ -32,8 +26,13 @@ EncoderArduinoBridge::EncoderArduinoBridge(ros::NodeHandle* nodehandle):nh(*node
     nh.param<string>("serial_port", serial_port, "/dev/serial/by-id/usb-Silicon_Labs_CP2104_USB_to_UART_Bridge_Controller_00FEBA77-if00-port0");
     nh.param<int>("serial_baud", serial_baud, 115200);
 
+    #ifdef USE_ENCODER1
     enc1_pub = nh.advertise<std_msgs::Int64>("/encoder1_raw", 100);
+    #endif
+
+    #ifdef USE_ENCODER2
     enc2_pub = nh.advertise<std_msgs::Int64>("/encoder2_raw", 100);
+    #endif
 }
 
 
@@ -133,14 +132,21 @@ int64_t EncoderArduinoBridge::parseSegmentedInt64(string s) {
 void EncoderArduinoBridge::parseToken(string token) {
     switch (token.at(0)) {
         case 't': ROS_DEBUG("encoder arduino time: %s", token.substr(1).c_str()); break;
+
+        #ifdef USE_ENCODER1
         case 'a':
             enc1_msg.data = parseSegmentedInt64(token.substr(1));
             enc1_pub.publish(enc1_msg);
             break;
+        #endif
+
+        #ifdef USE_ENCODER2
         case 'b':
             enc2_msg.data = parseSegmentedInt64(token.substr(1));
             enc2_pub.publish(enc2_msg);
             break;
+        #endif
+        
         default:
             ROS_WARN("Invalid segment type! Segment: '%s', packet: '%s'", token.c_str(), serial_buffer.c_str());
             break;

@@ -6,7 +6,7 @@
     <node pkg="tf2_ros" type="static_transform_publisher" name="enc_tf_broadcaster" args="0 0 0   1 0 0 0 base_link encoder" />
 
     <node name="babybuggy_odometry" pkg="babybuggy_odometry" type="babybuggy_odometry_node" output="screen" required="true">
-        <param name="~initial_compass_yaw_deg" type="double" value="180.0"/>
+        <param name="~initial_compass_yaw_deg" type="double" value="0.0"/>
 
         <param name="~wheel_encoder_radius" type="double" value="0.030825"/>
         <param name="~wheel_encoder_dist" type="double" value="0.152"/>
@@ -16,31 +16,31 @@
 
         <rosparam param="gps_covariances">
             [
-                50.0, 0.0, 0.0,
-                0.0, 50.0, 0.0,
+                75.0, 0.0, 0.0,
+                0.0, 75.0, 0.0,
                 0.0, 0.0, 1000.0
             ]
         </rosparam>
 
         <rosparam param="odom_pos_covariances">
             [
-                1.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
+                10.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                0.0, 10.0, 0.0, 0.0, 0.0, 0.0,
                 0.0, 0.0, 0.01, 0.0, 0.0, 0.0,
                 0.0, 0.0, 0.0, 0.01, 0.0, 0.0,
                 0.0, 0.0, 0.0, 0.0, 0.01, 0.0,
-                0.0, 0.0, 0.0, 0.0, 0.0, 0.01
+                0.0, 0.0, 0.0, 0.0, 0.0, 1.0
             ]
         </rosparam>
 
         <rosparam param="odom_vel_covariances">
             [
-                1.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
+                1000.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                0.0, 1000.0, 0.0, 0.0, 0.0, 0.0,
                 0.0, 0.0, 0.01, 0.0, 0.0, 0.0,
                 0.0, 0.0, 0.0, 0.01, 0.0, 0.0,
-                0.0, 0.0, 0.0, 0.0, 0.01, 0.0,
-                0.0, 0.0, 0.0, 0.0, 0.0, 0.01
+                0.0, 0.0, 0.0, 0.0, 1000.0, 0.0,
+                0.0, 0.0, 0.0, 0.0, 0.0, 1000.0
             ]
         </rosparam>
 

@@ -10,15 +10,28 @@
 
 using namespace std;
 
+#define USE_ENCODER1
+// #define USE_ENCODER2  // put other encoder on the IMU microcontroller
+
+// string parsing macros
+#define STR_TO_FLOAT(string)  strtof((string).c_str(), 0)
+#define STR_TO_INT(string)  string_to_int64(string)
+
+
 class EncoderArduinoBridge {
 private:
     ros::NodeHandle nh;  // ROS node handle
 
     // Encoder data publishers and data messages
+    #ifdef USE_ENCODER1
     ros::Publisher enc1_pub;
-    ros::Publisher enc2_pub;
     std_msgs::Int64 enc1_msg;
+    #endif
+
+    #ifdef USE_ENCODER2
+    ros::Publisher enc2_pub;
     std_msgs::Int64 enc2_msg;
+    #endif
 
     // Serial connection variables
     string serial_port;

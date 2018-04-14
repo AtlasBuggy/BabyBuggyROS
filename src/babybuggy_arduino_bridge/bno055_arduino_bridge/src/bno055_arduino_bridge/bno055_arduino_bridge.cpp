@@ -1,10 +1,5 @@
 #include <bno055_arduino_bridge/bno055_arduino_bridge.h>
 
-// string parsing macros
-#define STR_TO_FLOAT(string)  strtof((string).c_str(), 0)
-#define STR_TO_INT(string)  string_to_int64(string)
-
-// #define USE_SYSTEM_CHECK  // Use the system's status value to determine if data should be published
 
 // Constant definitions
 const string Bno055ArduinoBridge::IMU_FRAME_ID = "bno055_imu";
@@ -19,6 +14,7 @@ const string Bno055ArduinoBridge::START_COMMAND = "g" + PACKET_END;
 const string Bno055ArduinoBridge::STOP_COMMAND = "s" + PACKET_END;
 const string Bno055ArduinoBridge::IMU_MESSAGE_HEADER = "imu";
 const string Bno055ArduinoBridge::MESSAGE_DELIMITER = "\t";
+const string Bno055ArduinoBridge::INT64_SEGMENT_DELIMITER = "|";
 
 const float Bno055ArduinoBridge::JUMP_WARN_THRESHOLD = 0.5; // radians
 
@@ -40,6 +36,10 @@ Bno055ArduinoBridge::Bno055ArduinoBridge(ros::NodeHandle* nodehandle):nh(*nodeha
     nh.param<float>("debug_info_delay", _debug_info_delay, 1.0);
 
     imu_pub = nh.advertise<sensor_msgs::Imu>("/BNO055", 5);
+
+    #ifdef USE_ENCODER2
+    enc2_pub = nh.advertise<std_msgs::Int64>("/encoder2_raw", 100);
+    #endif
 
     initial_euler_roll = 0.0;
     initial_euler_pitch = 0.0;
@@ -108,6 +108,20 @@ void Bno055ArduinoBridge::eulerToQuat(sensor_msgs::Imu &imu_msg, float roll, flo
 	imu_msg.orientation.y = cy * cr * sp + sy * sr * cp;
 	imu_msg.orientation.z = sy * cr * cp - cy * sr * sp;
 }
+
+
+int64_t Bno055ArduinoBridge::parseSegmentedInt64(string s) {
+    size_t pos = s.find(INT64_SEGMENT_DELIMITER);
+    if (pos == string::npos) {
+        ROS_WARN("Couldn't find int 64 delimiting character in encoder message: '%s'", s.c_str());
+        return 0;
+    }
+    long long part1 = string_to_int64(s.substr(0, pos));
+    long long part2 = string_to_int64(s.substr(pos + 1));
+
+    return (part1 << 32) | part2;
+}
+
 
 int Bno055ArduinoBridge::run()
 {
@@ -231,6 +245,14 @@ void Bno055ArduinoBridge::parseToken(string token) {
                 case 'm': mag_status = STR_TO_INT(token.substr(2)); break;
             }
             break;
+
+        #ifdef USE_ENCODER2
+        case 'b':
+            enc2_msg.data = parseSegmentedInt64(token.substr(1));
+            enc2_pub.publish(enc2_msg);
+            break;
+        #endif
+
         default:
             ROS_WARN("Invalid segment type! Segment: '%s', packet: '%s'", token.c_str(), serial_buffer.c_str());
             break;

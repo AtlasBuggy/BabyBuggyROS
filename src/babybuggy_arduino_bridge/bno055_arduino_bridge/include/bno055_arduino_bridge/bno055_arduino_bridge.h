@@ -12,6 +12,15 @@
 
 using namespace std;
 
+// string parsing macros
+#define STR_TO_FLOAT(string)  strtof((string).c_str(), 0)
+#define STR_TO_INT(string)  string_to_int64(string)
+
+// #define USE_SYSTEM_CHECK  // Use the system's status value to determine if data should be published
+
+#define USE_ENCODER2  // put 2nd encoder on the IMU microcontroller
+
+
 class Bno055ArduinoBridge {
 private:
     ros::NodeHandle nh;  // ROS node handle
@@ -19,6 +28,11 @@ private:
     // IMU data publisher and data message
     ros::Publisher imu_pub;
     sensor_msgs::Imu imu_msg;
+
+    #ifdef USE_ENCODER2
+    ros::Publisher enc2_pub;
+    std_msgs::Int64 enc2_msg;
+    #endif
 
     // Serial connection variables
     string serial_port;
@@ -69,6 +83,7 @@ private:
 
     // Helper methods for parsing the IMU's data
     void eulerToQuat(sensor_msgs::Imu &imu_msg, float roll, float pitch, float yaw);
+    int64_t parseSegmentedInt64(string s);
     void parseToken(string token);
     void parseImuMessage();
 
@@ -90,6 +105,7 @@ public:
     // IMU data packet properties
     static const string IMU_MESSAGE_HEADER;  // the string that all imu data packets start with
     static const string MESSAGE_DELIMITER;  // IMU data segments are separated by this character
+    static const string INT64_SEGMENT_DELIMITER;
 
     static const float JUMP_WARN_THRESHOLD;  // if the IMU's euler angles jump more than this value between checks, warn the user
 

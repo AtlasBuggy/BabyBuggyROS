@@ -9,7 +9,7 @@ ErrorChecker::ErrorChecker(ros::NodeHandle* nodehandle):nh(*nodehandle)
     enc2_sub = nh.subscribe("/encoder2_raw", 10, &ErrorChecker::Encoder2Callback, this);
     odom_sub = nh.subscribe("/encoder_odom", 10, &ErrorChecker::OdomCallback, this);
     lidar_sub = nh.subscribe("/scan", 10, &ErrorChecker::LidarCallback, this);
-    bearing_sub = nh.subscribe("/bearing", 5, &ErrorChecker::BearingCallback, this);
+    bearing_sub = nh.subscribe("/gps_bearing", 5, &ErrorChecker::BearingCallback, this);
 
     yaw = 0.0;
     pitch = 0.0;
@@ -232,5 +232,5 @@ void ErrorChecker::BearingCallback(const geometry_msgs::PoseWithCovarianceStampe
     tf::Matrix3x3 m(tmp);
     m.getEulerYPR(bearing, _, _);
 
-    check_statement(0 <= bearing <= M_PI * 2, "yaw from GPS bearing is out of range! (%f not in 0...2pi)", yaw);
+    check_statement(0 <= bearing <= M_PI * 2, "yaw from GPS bearing is out of range! (%f not in 0...2pi)", bearing);
 }

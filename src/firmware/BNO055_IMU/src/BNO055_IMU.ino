@@ -6,6 +6,7 @@
 #include <Adafruit_BNO055.h>
 #include <utility/imumaths.h>
 #include <EEPROM.h>
+#include <Encoder.h>
 
 /* ----------------------- *
 * BNO055 global variables *
@@ -19,6 +20,8 @@
 #define INCLUDE_GYRO_DATA
 // #define INCLUDE_ACCEL_DATA
 #define INCLUDE_LINACCEL_DATA
+
+#define USE_ENCODER2
 
 SerialManager manager;
 
@@ -45,6 +48,15 @@ imu::Vector<3> linaccel;
 
 /* Set the delay between fresh samples */
 #define BNO055_SAMPLERATE_DELAY_MS (20)
+
+
+// first encoder is on another microcontroller
+#ifdef USE_ENCODER2
+Encoder encoder2(3, 2);
+int64_t encoder2_read = 0;
+uint64_t prev_enc_time = millis();
+#endif
+
 
 /**************************************************************************/
 /*
@@ -540,11 +552,28 @@ void updateIMU() {
     Serial.print(accel_stat, DEC);
     Serial.print("\tsm");
     Serial.print(mag_stat, DEC);
-
-    Serial.print('\n');
-
 }
 
+void print_int64(int64_t value)
+{
+    int32_t part1 = value >> 32;
+    int32_t part2 = value & 0xffffffff;
+    Serial.print(part1);
+    Serial.print("|");
+    Serial.print(part2);
+}
+
+void updateEncoder()
+{
+    encoder2_read = encoder2.read();
+    if (prev_enc_time > millis()) {
+        prev_enc_time = millis();
+    }
+    if (millis() - prev_enc_time > 100) {
+        Serial.print("\tb");
+        print_int64(encoder2_read);
+    }
+}
 
 void setup() {
     // manager.begin();
@@ -566,15 +595,17 @@ void loop() {
         int status = manager.readSerial();
         String command = manager.getCommand();
 
-        // if (status == 2)  // start event
-        // {
-        //
-        // }
+        if (status == 2)  // start event
+        {
+            #ifdef USE_ENCODER1
+            encoder1.write(0);
+            #endif
+        }
         // else if (status == 1)  // stop event
         // {
         //
         // }
-        if (status == 0)  // user command
+        else if (status == 0)  // user command
         {
             if (command.equals("clear")) {
                 clearEeprom();
@@ -584,6 +615,10 @@ void loop() {
 
     if (!manager.isPaused()) {
         updateIMU();
+        #ifdef USE_ENCODER2
+        updateEncoder();
+        #endif
+        Serial.print('\n');
 
         // update rate for imu
         delay(BNO055_SAMPLERATE_DELAY_MS);

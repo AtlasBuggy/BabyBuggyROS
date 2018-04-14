@@ -142,7 +142,7 @@ BabybuggyOdometry::BabybuggyOdometry(ros::NodeHandle* nodehandle):nh(*nodehandle
         ROS_ASSERT(_imu_launch_covariances.getType() == XmlRpc::XmlRpcValue::TypeArray);
         ROS_ASSERT(_imu_launch_covariances.size() == LEN_IMU_COVARIANCE);
 
-        ROS_INFO("Using launch file's imu covariances");
+        ROS_INFO("Using launch file's imu covariances. Length is %d", _imu_launch_covariances.size());
         for (size_t i = 0; i < 9; i++) {
             imu_msg.orientation_covariance[i] = _imu_launch_covariances[i];
         }
@@ -177,8 +177,6 @@ BabybuggyOdometry::BabybuggyOdometry(ros::NodeHandle* nodehandle):nh(*nodehandle
 
 int BabybuggyOdometry::run()
 {
-    ros::Rate clock_rate(60);  // run loop at 60 Hz
-
     tf::Quaternion odom_quat;
 
     double delta1_dist, delta2_dist;
@@ -186,7 +184,9 @@ int BabybuggyOdometry::run()
     double avg_dist, delta_x, delta_y;
     double dt;
     double velocity_x, velocity_y, angular_z;
+    ros::Time current_time;
 
+    ros::Rate clock_rate(60);  // run loop at 60 Hz
     while (ros::ok())
     {
         // let ROS process any events
@@ -195,7 +195,7 @@ int BabybuggyOdometry::run()
 
         if (encoder1_ticks != prev_encoder1_ticks || encoder2_ticks != prev_encoder2_ticks)
         {
-            ros::Time current_time = ros::Time::now();
+            current_time = ros::Time::now();
 
             delta1_dist = (encoder1_ticks - prev_encoder1_ticks) * enc_ticks_to_m;
             delta2_dist = (encoder2_ticks - prev_encoder2_ticks) * enc_ticks_to_m;
@@ -385,8 +385,6 @@ void BabybuggyOdometry::GPSCallback(const sensor_msgs::NavSatFix& msg)
                 }
                 bearing_msg.pose.covariance[35] = bearing_covariance;  // last element is the yaw covariance
 
-                bearing_pub.publish(bearing_msg);
-
                 if (bearing_vector.size() >= BEARING_ROLL_AVERAGE_SIZE) {
                     bearing_vector.erase(bearing_vector.begin());
                 }
@@ -399,6 +397,7 @@ void BabybuggyOdometry::GPSCallback(const sensor_msgs::NavSatFix& msg)
             prev_msg.position_covariance_type = msg.COVARIANCE_TYPE_APPROXIMATED;
         }
 
+        bearing_pub.publish(bearing_msg);
         navsat_pub.publish(prev_msg);
     }
     else {
