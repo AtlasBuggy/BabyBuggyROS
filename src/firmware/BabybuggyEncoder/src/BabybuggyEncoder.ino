@@ -24,8 +24,8 @@ void setup() {
 
 void print_int64(int64_t value)
 {
-    int32_t part1 = value >> 32;
-    int32_t part2 = value & 0xffffffff;
+    uint32_t part1 = value >> 32;
+    uint32_t part2 = value & 0xffffffff;
     Serial.print(part1);
     Serial.print("|");
     Serial.print(part2);
@@ -63,10 +63,10 @@ void loop() {
             Serial.print("enc\tt");
             Serial.print(millis());
 
-            Serial.print("\t1");
+            Serial.print("\ta");
             print_int64(encoder1_read);
 
-            Serial.print("\t2");
+            Serial.print("\tb");
             print_int64(encoder2_read);
 
             Serial.print('\n');
