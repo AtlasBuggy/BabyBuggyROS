@@ -1,11 +1,11 @@
 <launch>
     <param name="use_sim_time" value="true"/>
     <include file="$(find babybuggy_config)/launch/babybuggy_config.launch"/>
-    <!-- <include file="$(find babybuggy_config)/launch/babybuggy_gmapping.launch"/> -->
-    <!-- <include file="$(find babybuggy_config)/launch/babybuggy_visualize.launch"/> -->
+    <include file="$(find babybuggy_config)/launch/babybuggy_gmapping.launch"/>
+    <include file="$(find babybuggy_config)/launch/babybuggy_visualize.launch"/>
 
     <node name="babybuggy_error_checker" pkg="babybuggy_error_checker" type="babybuggy_error_checker_node" output="screen" required="true"/>
     <node name="odometry_tf_converter" pkg="odometry_tf_converter" type="odometry_tf_converter_node" output="screen">
-        <param name="~odom_sub_name" type="string" value="naive_odom"/>
+        <param name="~odom_sub_name" type="string" value="encoder_odom"/>
     </node>
 </launch>

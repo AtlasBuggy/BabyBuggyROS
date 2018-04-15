@@ -109,7 +109,7 @@
                                         <relative_minimum>-1000</relative_minimum>
                                         <type>0</type>
                                     </scale>
-                                    <topic>/naive_odom</topic>
+                                    <topic>/encoder_odom</topic>
                                     <type>nav_msgs/Odometry</type>
                                 </x_axis>
                                 <y_axis>
@@ -122,7 +122,7 @@
                                         <relative_minimum>-1000</relative_minimum>
                                         <type>0</type>
                                     </scale>
-                                    <topic>/naive_odom</topic>
+                                    <topic>/encoder_odom</topic>
                                     <type>nav_msgs/Odometry</type>
                                 </y_axis>
                             </axes>

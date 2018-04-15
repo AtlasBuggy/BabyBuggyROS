@@ -597,8 +597,8 @@ void loop() {
 
         if (status == 2)  // start event
         {
-            #ifdef USE_ENCODER1
-            encoder1.write(0);
+            #ifdef USE_ENCODER2
+            encoder2.write(0);
             #endif
         }
         // else if (status == 1)  // stop event
