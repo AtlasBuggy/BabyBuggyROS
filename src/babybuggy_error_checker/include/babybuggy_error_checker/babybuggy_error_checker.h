@@ -20,7 +20,9 @@ void check_statement(bool statement, const char* error_message_format, ...) {
         va_start(argptr, error_message_format);
         vfprintf(stderr, error_message_format, argptr);
         va_end(argptr);
-        throw std::runtime_error(error_message_format);
+
+        // disabled crash on error
+        // throw std::runtime_error(error_message_format);
     }
 }
 
