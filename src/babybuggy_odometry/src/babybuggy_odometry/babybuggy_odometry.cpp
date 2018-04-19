@@ -45,6 +45,7 @@ BabybuggyOdometry::BabybuggyOdometry(ros::NodeHandle* nodehandle):nh(*nodehandle
     nh.param<double>("wheel_encoder_radius", wheel_encoder_radius, 1.0);
     nh.param<double>("wheel_encoder_dist", wheel_encoder_dist, 1.0);
     nh.param<int>("ticks_per_rotation", ticks_per_rotation, 1);
+    nh.param<bool>("reverse_encoder_yaw", reverse_encoder_yaw, false);
 
     // initialize odometry
     odom_x = 0.0;
@@ -204,7 +205,12 @@ int BabybuggyOdometry::run()
             prev_encoder2_ticks = encoder2_ticks;
 
             prev_odom_yaw = odom_yaw;
-            odom_yaw += (delta1_dist - delta2_dist) / wheel_encoder_dist;
+            if (reverse_encoder_yaw) {
+                odom_yaw += (delta1_dist - delta2_dist) / wheel_encoder_dist;                
+            }
+            else {
+                odom_yaw += (delta2_dist - delta1_dist) / wheel_encoder_dist;
+            }
             constrained_odom_yaw = abs(fmod(odom_yaw, 2.0 * M_PI));
             avg_dist = (delta1_dist + delta2_dist) / 2.0;
 

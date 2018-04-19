@@ -32,7 +32,7 @@
         <param name="odom0_differential" value="true"/>
 
         <!-- GPS absolute position relative to start -->
-        <param name="odom1" value="/odometry/gps"/>
+        <!-- <param name="odom1" value="/odometry/gps"/>
         <rosparam param="odom1_config">
             [true, true, false,
             false, false, false,
@@ -41,7 +41,7 @@
             false, false, false]
         </rosparam>
         <param name="odom1_relative" value="false"/>
-        <param name="odom1_differential" value="false"/>
+        <param name="odom1_differential" value="false"/> -->
 
         <!-- IMU orientation -->
         <param name="imu0" value="/BNO055_covariances"/>
@@ -54,7 +54,7 @@
         </rosparam>
 
         <!-- GPS compass bearing -->
-        <param name="pose0" value="/gps_bearing"/>
+        <!-- <param name="pose0" value="/gps_bearing"/>
         <rosparam param="pose0_config">
             [false, false, false,
             false, false, true,
@@ -62,7 +62,7 @@
             false, false, false,
             false, false, false]
         </rosparam>
-        <param name="pose0_relative" value="false"/>
+        <param name="pose0_relative" value="false"/> -->
 
         <rosparam param="initial_estimate_covariance">
             [1e6, 0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,

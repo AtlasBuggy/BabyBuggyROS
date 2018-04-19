@@ -66,6 +66,7 @@ private:
     double wheel_encoder_radius;
     double wheel_encoder_dist;
     int ticks_per_rotation;
+    bool reverse_encoder_yaw;
 
     // transformation from the robot's frame to the odom frame
     tf::Transform odometry_transform;

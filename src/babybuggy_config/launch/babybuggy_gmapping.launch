@@ -11,9 +11,9 @@
 
             maxRange: 32.76 # Max sensor value
             maxUrange: 32.0 # Usable region of the sensor
-            particles: 360
+            particles: 80
 
-            minimumScore: 5
+            # minimumScore: 5
 
             # Update frequencies
             # linearUpdate: 0.01
@@ -21,17 +21,17 @@
             temporalUpdate: 0.01
             # resampleThreshold: 0.5
 
-            srr: 0.01
-            srt: 0.01
-            str: 0.01
-            stt: 0.01
+            # srr: 0.01
+            # srt: 0.01
+            # str: 0.01
+            # stt: 0.01
 
             # Initial Map Size
-            xmin: -100.0
-            ymin: -100.0
-            xmax: 100.0
-            ymax: 100.0
-            delta: 0.1
+            xmin: -25.0
+            ymin: -25.0
+            xmax: 25.0
+            ymax: 25.0
+            delta: 0.05
 
             # All default
             # sigma: 0.05
