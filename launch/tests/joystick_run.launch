@@ -1,5 +1,0 @@
-<launch>
-  <node name="joystick" pkg="joy" type="joy_node">
-    <param name="joy_node/dev" value="/dev/input/js0"/>
-  </node>
-</launch>

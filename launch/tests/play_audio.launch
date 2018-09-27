@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<launch>
-    <node name="audio_play" pkg="audio_play" type="audio_play" output="screen">
-        <!-- <remap from="/audio" to="/webcam/audio" /> -->
-    </node>
-    <!-- <group ns="webcam">
-
-    </group> -->
-</launch>

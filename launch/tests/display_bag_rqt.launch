@@ -1,4 +1,0 @@
-<launch>
-    <node pkg="rqt_multiplot" type="rqt_multiplot" name="plotter" output="screen" args="--multiplot-config launch/rqt_multiplot.xml --multiplot-run-all"/>
-    <node name="robot_tfs" pkg="robot_tfs" type="robot_tfs_node" output="screen"/>
-</launch>
