@@ -1,10 +1,13 @@
 #!/usr/bin/env python
-# license removed for brevity
 import rospy
+import sys
 from std_msgs.msg import Float64
 
 k = 0.1
-channel = "velocity"
+if (len(sys.argv) < 2):
+    print("Usage: smooth.py channel_name")
+    raise ValueError('Please include as an argument the channel you want to smooth!')
+channel = sys.argv[1]
 speed = 0.0
 pub = rospy.Publisher("smooth_" + channel, Float64, queue_size=10)
 
