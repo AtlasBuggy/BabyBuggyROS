@@ -8,6 +8,7 @@ from std_msgs.msg import Float64
 
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
 
+p = 0.1
 state = [0, 0, 0, 0] # x, y, th, v
 prev_time = None
 orientation = [0, 0, 0, 1]
@@ -31,7 +32,8 @@ def imu_callback(msg):
     w = msg.orientation.w
     orientation = [x, y, z, w]
     (roll, pitch, yaw) = euler_from_quaternion(orientation)
-    state[2] = yaw
+
+    state[2] += (yaw - state[2]) * p # smooth yaw reading
 
     cur_time = rospy.get_time()
     dt = cur_time - prev_time

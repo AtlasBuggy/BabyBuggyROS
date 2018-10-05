@@ -1,0 +1,4 @@
+<launch>
+  <node name="velocity_calculator" pkg="wheel_vel" type="calc_vel.py" />
+  <node name="dead_reckoning" pkg="dead_reckoning" type="dead_reckoning.py" />
+</launch>
