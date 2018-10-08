@@ -1,4 +1,5 @@
 <launch>
+  <param name="use_sim_time" value="true"/>
   <node pkg="tf2_ros" type="static_transform_publisher" name="laser_tf_broadcaster" args="0 0 0 0 0 0 1 base_link laser" />
   <node pkg="tf2_ros" type="static_transform_publisher" name="imu_tf_broadcaster" args="0.1016 0.0762 0.095   0 0 0 1 base_link imu" />
 
@@ -39,10 +40,10 @@
           delta: 0.05
 
           # All default
-          # sigma: 0.05
+          sigma: 0.01
           # kernelSize: 1
-          # lstep: 0.05
-          # astep: 0.05
+          lstep: 0.01
+          astep: 0.01
           # iterations: 5
           # lsigma: 0.075
           # ogain: 3.0
