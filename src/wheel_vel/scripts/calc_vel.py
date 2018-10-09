@@ -33,14 +33,14 @@ def enc1_callback(msg):
     global left_dist, left_vel, left_prev_time, left_prev_err
     global enc_ticks_to_m
 
-    cur_dist = msg.data * enc_ticks_to_m
-    cur_time = rospy.get_time()
-
     # update left velocity and dist
     if left_dist == None:
-        left_dist = cur_dist
-        left_prev_time = cur_time
+        left_dist = msg.data * enc_ticks_to_m
+        left_prev_time = rospy.get_time()
     else:
+        cur_dist = msg.data * enc_ticks_to_m
+        cur_time = rospy.get_time()
+
         d_dist = cur_dist - left_dist
         d_t = cur_time - left_prev_time
 
