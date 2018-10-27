@@ -9,7 +9,7 @@ Robot buggy;
 int main()
 {
 	deque<pair<double, double>> path;
-	for (int i = 0; i < 144; i++)
+	for (int i = 0; i < 100; i++)
 	{
 		path.push_back(make_pair(x_cord[i], y_cord[i]));
 	}

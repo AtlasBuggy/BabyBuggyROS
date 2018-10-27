@@ -71,11 +71,13 @@ void Robot::locate_on_map()
 double Robot::pp_control()
 {
 	double look_ahead_distance = LAD_COEFF;
+	locate_on_map();
 	pair<double, double> curr_ind_pos = path[index];
 	int target = index;
 	while (look_ahead_distance > 0)
 	{
-		look_ahead_distance -= distance(path[target], path[(++target)%path.size()]);
+		look_ahead_distance -= distance(path[target], path[(target+1)%path.size()]);
+		target++;
 	}
 	double global_x_diff = path[target].first - x;
 	double global_y_diff = path[target].second - y;
@@ -85,4 +87,5 @@ double Robot::pp_control()
 	double pos_x_diff = dist_diff * cos(pos_deg);
 	double pos_y_diff = dist_diff * sin(pos_deg);
 	double steer_angle = atan(2 * WHEEL_BASE*pos_x_diff / dist_diff);
+	return steer_angle;
 }
