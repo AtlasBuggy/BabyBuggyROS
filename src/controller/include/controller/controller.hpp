@@ -84,8 +84,8 @@ double Robot::pp_control()
 	double dist_diff = distance(path[target], make_pair(x, y));
 	double global_deg = atan(global_y_diff / global_x_diff);
 	double pos_deg = global_deg - ori;
-	double pos_x_diff = dist_diff * cos(pos_deg);
-	double pos_y_diff = dist_diff * sin(pos_deg);
+	double pos_y_diff = dist_diff * cos(pos_deg);
+	double pos_x_diff = dist_diff * sin(pos_deg);
 	double steer_angle = atan(2 * WHEEL_BASE*pos_x_diff / dist_diff);
 	return steer_angle;
 }
