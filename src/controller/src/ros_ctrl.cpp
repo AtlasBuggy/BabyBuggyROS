@@ -37,7 +37,7 @@ int main(int argc, char **argv)
 	ros::init(argc, argv, "controller");
 	ros::NodeHandle n;
 	ros::Publisher steering_pub = n.advertise<std_msgs::Float64>("steering_angle", 10);
-	ros::Subscriber odom_sub = n.subscribe<geometry_msgs::Pose>("dead_reakon_odom", 10, odom_callback);
+	ros::Subscriber odom_sub = n.subscribe<geometry_msgs::Pose>("dead_reckon_odom", 10, odom_callback);
 	ros::Subscriber speed_sub = n.subscribe<std_msgs::Float64>("wheel_vel", 10, speed_callback);
 	ros::Rate loop_rate(10);
 	int count = 0;
