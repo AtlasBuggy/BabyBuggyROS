@@ -6,13 +6,13 @@
   <node name="velocity_calculator" pkg="wheel_vel" type="calc_vel.py" />
   <node name="dead_reckoning" pkg="dead_reckoning" type="dead_reckoning.py" />
 
-  <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen">
+  <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen" required="true">
       <rosparam>
           odom_frame: odom
           base_frame: base_link
           map_frame: map
 
-          map_update_interval: 100  # Publish new map (seconds)
+          map_update_interval: 1250 # Publish new map (seconds)
           throttle_scans: 1  # don't skip any scans
 
           maxRange: 32.76 # Max sensor value
@@ -22,9 +22,9 @@
           # minimumScore: 5
 
           # Update frequencies
-          linearUpdate: 0.1
+          # linearUpdate: 0.1
           # angularUpdate: 0.01
-          # temporalUpdate: 0.01
+          temporalUpdate: 0.1
           # resampleThreshold: 0.5
 
           srr: 0
@@ -42,8 +42,8 @@
           # All default
           sigma: 0.01
           # kernelSize: 1
-          lstep: 0.01
-          astep: 0.01
+          lstep: 0
+          astep: 0
           # iterations: 5
           # lsigma: 0.075
           # ogain: 3.0

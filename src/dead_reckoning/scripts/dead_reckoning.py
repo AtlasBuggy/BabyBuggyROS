@@ -6,13 +6,13 @@ import numpy as np
 import tf2_ros
 
 from sensor_msgs.msg import Imu
-from geometry_msgs.msg import Pose, TransformStamped
+from nav_msgs.msg import Odometry
+from geometry_msgs.msg import TransformStamped
 from std_msgs.msg import Float64
 
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
 
-p = 0.1
-state = [0, 0, 0, 0, 0, 0] # [x, y, z, v, w]
+state = [0, 0, 0, 0, 0] # [x, y, z, v, w]
 prev_time = None
 orientation = [0, 0, 0, 1]
 
@@ -63,8 +63,6 @@ def imu_callback(msg):
 
     transf_vel = R * vel_mat
 
-    # state[2] += (yaw - state[2]) * p # smooth yaw reading
-
     cur_time = rospy.get_time()
     dt = cur_time - prev_time
     prev_time = cur_time
@@ -81,45 +79,45 @@ def main():
     rospy.Subscriber("ang_vel", Float64, ang_vel_callback)
     rospy.Subscriber("BNO055", Imu, imu_callback)
 
-    odom_pub = rospy.Publisher("dead_reckon_odom", Pose, queue_size=10)
+    odom_pub = rospy.Publisher("odom", Odometry, queue_size=10)
 
     rate = rospy.Rate(10) # 10hz
 
     while not rospy.is_shutdown():
-        # br = tf.TransformBroadcaster()
-        # br.sendTransform(state[0:3], orientation, \
-        #                  rospy.Time.now(), \
-        #                  "odom", "base_link")
 
         broadcaster = tf2_ros.StaticTransformBroadcaster()
-        static_transformStamped = TransformStamped()
+        tf_msg = TransformStamped()
 
-        static_transformStamped.header.stamp = rospy.Time.now()
-        static_transformStamped.header.frame_id = "odom"
-        static_transformStamped.child_frame_id = "base_link"
+        tf_msg.header.stamp = rospy.Time.now()
+        tf_msg.header.frame_id = "odom"
+        tf_msg.child_frame_id = "base_link"
 
-        static_transformStamped.transform.translation.x = state[0]
-        static_transformStamped.transform.translation.y = state[1]
-        static_transformStamped.transform.translation.z = state[2]
+        tf_msg.transform.translation.x = state[0]
+        tf_msg.transform.translation.y = state[1]
+        tf_msg.transform.translation.z = state[2]
+        tf_msg.transform.rotation.x = orientation[0]
+        tf_msg.transform.rotation.y = orientation[1]
+        tf_msg.transform.rotation.z = orientation[2]
+        tf_msg.transform.rotation.w = orientation[3]
 
-        static_transformStamped.transform.rotation.x = orientation[0]
-        static_transformStamped.transform.rotation.y = orientation[1]
-        static_transformStamped.transform.rotation.z = orientation[2]
-        static_transformStamped.transform.rotation.w = orientation[3]
+        broadcaster.sendTransform(tf_msg)
 
-        broadcaster.sendTransform(static_transformStamped)
+        new_msg = Odometry()
+        new_msg.header.stamp = rospy.Time.now()
+        new_msg.header.frame_id = "odom"
+        new_msg.child_frame_id = "base_link"
+        new_msg.pose.pose.position.x = state[0]
+        new_msg.pose.pose.position.y = state[1]
+        # new_msg.pose.pose.position.z = state[2]
+        new_msg.pose.pose.position.z = 0
 
-        msg = Pose()
-        msg.position.x = state[0]
-        msg.position.y = state[1]
-        msg.position.z = state[2]
+        new_msg.pose.pose.orientation.x = orientation[0]
+        new_msg.pose.pose.orientation.y = orientation[1]
+        new_msg.pose.pose.orientation.z = orientation[2]
+        new_msg.pose.pose.orientation.w = orientation[3]
 
-        msg.orientation.x = orientation[0]
-        msg.orientation.y = orientation[1]
-        msg.orientation.z = orientation[2]
-        msg.orientation.w = orientation[3]
+        odom_pub.publish(new_msg)
 
-        odom_pub.publish(msg)
         rate.sleep()
 
 if __name__ == '__main__':

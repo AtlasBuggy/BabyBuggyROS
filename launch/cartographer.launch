@@ -1,9 +1,30 @@
 <launch>
-  <!-- <param name="use_sim_time" value="true"/> -->
-  <node pkg="tf2_ros" type="static_transform_publisher" name="laser_tf_broadcaster" args="0 0 0 0 0 0 1 base_link laser" />
-  <node pkg="tf2_ros" type="static_transform_publisher" name="imu_tf_broadcaster" args="0.1016 0.0762 0.095   0 0 0 1 base_link imu" />
+  <param name="/use_sim_time" value="true"/>
+  <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="laser_tf_broadcaster" args="0 0 0 0 0 0 1 base_link laser" /> -->
+  <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="echo_tf_broadcaster" args="0 0 0 0 0 0 1 base_link echoes" /> -->
+  <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="imu_tf_broadcaster" args="0.1016 0.0762 0.095   0 0 0 1 base_link imu" /> -->
 
   <node name="velocity_calculator" pkg="wheel_vel" type="calc_vel.py" />
   <node name="dead_reckoning" pkg="dead_reckoning" type="dead_reckoning.py" />
-  <node name="cartographer_init" pkg="cartographer_init" type="transform_topics.py" />
+  <!-- <node name="cartographer_init" pkg="cartographer_init" type="transform_topics.py" /> -->
+
+  <!-- <param name="robot_description"
+    textfile="$(find cartographer_init)/urdf/babybuggy.urdf" />
+
+  <node name="robot_state_publisher" pkg="robot_state_publisher"
+    type="robot_state_publisher" /> -->
+
+  <node name="cartographer_occupancy_grid_node" pkg="cartographer_ros"
+      type="cartographer_occupancy_grid_node" args="-resolution 0.05" />
+
+  <node name="cartographer_node" pkg="cartographer_ros"
+      type="cartographer_offline_node" args="
+          -configuration_directory $(find cartographer_init)/configuration_files
+          -configuration_basenames babybuggy.lua
+          -urdf_filenames $(find cartographer_init)/urdf/babybuggy.urdf
+          -bag_filenames /home/oshadha/Documents/Projects/Atlas/rosbag/output.bag"
+      output="screen">
+  </node>
+
+  <!-- <node name="rviz" pkg="rviz" type="rviz" required="true" /> -->
 </launch>
