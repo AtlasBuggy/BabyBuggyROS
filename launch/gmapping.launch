@@ -12,7 +12,7 @@
           base_frame: base_link
           map_frame: map
 
-          map_update_interval: 1250 # Publish new map (seconds)
+          map_update_interval: 100 # Publish new map (seconds)
           throttle_scans: 1  # don't skip any scans
 
           maxRange: 32.76 # Max sensor value
@@ -27,10 +27,10 @@
           temporalUpdate: 0.1
           # resampleThreshold: 0.5
 
-          srr: 0
-          srt: 0
-          str: 0
-          stt: 0
+          srr: 0.1
+          srt: 0.2
+          str: 0.1
+          stt: 0.2
 
           # Initial Map Size
           xmin: -25.0
@@ -42,8 +42,8 @@
           # All default
           sigma: 0.01
           # kernelSize: 1
-          lstep: 0
-          astep: 0
+          lstep: 0.05
+          astep: 0.05
           # iterations: 5
           # lsigma: 0.075
           # ogain: 3.0

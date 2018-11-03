@@ -1,0 +1,19 @@
+<launch>
+  <param name="use_sim_time" value="true"/>
+  <arg name="map_path" value="$(find dead_reckoning)/maps/scott_hall.yaml"/>
+
+  <node pkg="tf2_ros" type="static_transform_publisher" name="laser_tf_broadcaster" args="0 0 0 0 0 0 1 base_link laser" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="imu_tf_broadcaster" args="0.1016 0.0762 0.095   0 0 0 1 base_link imu" />
+
+  <node name="velocity_calculator" pkg="wheel_vel" type="calc_vel.py" />
+  <node name="dead_reckoning" pkg="dead_reckoning" type="dead_reckoning.py" />
+
+  <node pkg="map_server" type="map_server" name="map_server" output="screen" args="$(arg map_path)"/>
+  <node pkg="amcl" type="amcl" name="amcl">
+      <param name="use_map_topic" value="true"/>
+      <!-- <param name="update_min_d" value="0.1" /> -->
+      <!-- <param name="update_min_a" value="0.1" /> -->
+      <!-- <param name="kld_err" value="0.10" /> -->
+      <!-- <param name="max_particles" value="1000" /> -->
+  </node>
+</launch>
