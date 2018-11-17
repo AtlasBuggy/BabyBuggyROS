@@ -87,7 +87,8 @@ def main():
     rate = rospy.Rate(10) # 10hz
 
     while not rospy.is_shutdown():
-        vel = (right_vel + left_vel)/2.0
+        # vel = (right_vel + left_vel)/2.0
+        vel = right_vel
         vel_pub.publish(vel)
 
         ang_vel = (right_vel - left_vel)/(wheel_dist)
