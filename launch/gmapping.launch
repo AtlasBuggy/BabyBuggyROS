@@ -1,0 +1,57 @@
+<launch>
+  <param name="use_sim_time" value="true"/>
+  <node pkg="tf2_ros" type="static_transform_publisher" name="laser_tf_broadcaster" args="0 0 0 0 0 0 1 base_link laser" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="imu_tf_broadcaster" args="0.1016 0.0762 0.095   0 0 0 1 base_link imu" />
+
+  <node name="velocity_calculator" pkg="wheel_vel" type="calc_vel.py" required="true"/>
+  <node name="dead_reckoning" pkg="dead_reckoning" type="dead_reckoning.py" required="true"/>
+
+  <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen" required="true">
+      <rosparam>
+          odom_frame: odom
+          base_frame: base_link
+          map_frame: map
+
+          map_update_interval: 100 # Publish new map (seconds)
+          throttle_scans: 1  # don't skip any scans
+
+          maxRange: 32.76 # Max sensor value
+          maxUrange: 30.0 # Usable region of the sensor
+          particles: 100
+
+          # minimumScore: 5
+
+          # Update frequencies
+          # linearUpdate: 0.1
+          # angularUpdate: 0.01
+          temporalUpdate: 0.1
+          # resampleThreshold: 0.5
+
+          srr: 0.005
+          srt: 0.01
+          str: 0.007
+          stt: 0.01
+
+          # Initial Map Size
+          xmin: -25.0
+          ymin: -25.0
+          xmax: 25.0
+          ymax: 25.0
+          delta: 0.05
+
+          # All default
+          sigma: 0.05
+          # kernelSize: 1
+          lstep: 0
+          astep: 0
+          # iterations: 5
+          # lsigma: 0.075
+          # ogain: 3.0
+          # lskip: 0
+          # llsamplerange: 0.01
+          # llsamplestep: 0.01
+          # lasamplerange: 0.005
+          # lasamplestep: 0.005
+      </rosparam>
+  </node>
+</launch>

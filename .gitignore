@@ -183,10 +183,10 @@ Thumbs.db
 .sconsign.dblite/
 videos
 videos/
-maps/
 converted/
 build
 devel
+maps
 
 # ML files #
 ############
