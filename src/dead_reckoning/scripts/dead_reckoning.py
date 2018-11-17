@@ -12,7 +12,6 @@ from std_msgs.msg import Float64
 
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
 
-<<<<<<< HEAD
 USE_ANG_VEL = True
 USE_IMU_ANG_VEL = False
 
@@ -23,9 +22,6 @@ ang_velocity = [0, 0, 0] # [wx, wy, wz]
 orientation = [0, 0, 0, 1]    # [x, y, z, w]
 orientation_euler = [0, 0, 0] # [roll, pitch, yaw]
 
-=======
-state = [0, 0, 0, 0, 0] # [x, y, z, v, w]
->>>>>>> dfeb7c4b5faaec5c5a8f5ed732d56deacf5a1428
 prev_time = None
 ang_vel_gain = 0.1
 
@@ -110,14 +106,10 @@ def imu_callback(msg):
 
     # update state based off of rotated velocity
     transf_vel = R * vel_mat
-<<<<<<< HEAD
-=======
-
     cur_time = rospy.get_time()
     dt = cur_time - prev_time
     prev_time = cur_time
 
->>>>>>> dfeb7c4b5faaec5c5a8f5ed732d56deacf5a1428
     state[0] = state[0] + transf_vel[0,0]*dt
     state[1] = state[1] + transf_vel[1,0]*dt
     state[2] = state[2] + transf_vel[2,0]*dt
@@ -135,11 +127,7 @@ def main():
     rate = rospy.Rate(UPDATE_RATE) # 10hz
 
     while not rospy.is_shutdown():
-<<<<<<< HEAD
         # send transform message to ROS
-=======
-
->>>>>>> dfeb7c4b5faaec5c5a8f5ed732d56deacf5a1428
         broadcaster = tf2_ros.StaticTransformBroadcaster()
         tf_msg = TransformStamped()
 
@@ -157,10 +145,7 @@ def main():
 
         broadcaster.sendTransform(tf_msg)
 
-<<<<<<< HEAD
         # send Odometry message to ROS on /odom
-=======
->>>>>>> dfeb7c4b5faaec5c5a8f5ed732d56deacf5a1428
         new_msg = Odometry()
         new_msg.header.stamp = rospy.Time.now()
         new_msg.header.frame_id = "odom"
@@ -177,10 +162,7 @@ def main():
 
         odom_pub.publish(new_msg)
 
-<<<<<<< HEAD
         # sleep to maintain update rate
-=======
->>>>>>> dfeb7c4b5faaec5c5a8f5ed732d56deacf5a1428
         rate.sleep()
 
 if __name__ == '__main__':

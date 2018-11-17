@@ -3,13 +3,8 @@
   <node pkg="tf2_ros" type="static_transform_publisher" name="laser_tf_broadcaster" args="0 0 0 0 0 0 1 base_link laser" />
   <node pkg="tf2_ros" type="static_transform_publisher" name="imu_tf_broadcaster" args="0.1016 0.0762 0.095   0 0 0 1 base_link imu" />
 
-<<<<<<< HEAD
   <node name="velocity_calculator" pkg="wheel_vel" type="calc_vel.py" required="true"/>
   <node name="dead_reckoning" pkg="dead_reckoning" type="dead_reckoning.py" required="true"/>
-=======
-  <node name="velocity_calculator" pkg="wheel_vel" type="calc_vel.py" />
-  <node name="dead_reckoning" pkg="dead_reckoning" type="dead_reckoning.py" />
->>>>>>> dfeb7c4b5faaec5c5a8f5ed732d56deacf5a1428
 
   <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen" required="true">
       <rosparam>
@@ -32,17 +27,10 @@
           temporalUpdate: 0.1
           # resampleThreshold: 0.5
 
-<<<<<<< HEAD
           srr: 0.005
           srt: 0.01
           str: 0.007
           stt: 0.01
-=======
-          srr: 0.1
-          srt: 0.2
-          str: 0.1
-          stt: 0.2
->>>>>>> dfeb7c4b5faaec5c5a8f5ed732d56deacf5a1428
 
           # Initial Map Size
           xmin: -25.0
@@ -52,17 +40,10 @@
           delta: 0.05
 
           # All default
-<<<<<<< HEAD
           sigma: 0.05
           # kernelSize: 1
           lstep: 0
           astep: 0
-=======
-          sigma: 0.01
-          # kernelSize: 1
-          lstep: 0.05
-          astep: 0.05
->>>>>>> dfeb7c4b5faaec5c5a8f5ed732d56deacf5a1428
           # iterations: 5
           # lsigma: 0.075
           # ogain: 3.0
