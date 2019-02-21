@@ -1,0 +1,6 @@
+<launch>
+    <node type="bno055_arduino_bridge_node" name="bno055_arduino_bridge_node" pkg="bno055_arduino_bridge" required="true" output="screen">
+        <param name="serial_port" type="string" value="/dev/ttyUSB0"/>
+        <param name="serial_baud" type="int" value="115200"/>
+    </node>
+</launch>
