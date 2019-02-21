@@ -7,3 +7,4 @@
 - gps_common - ```sudo apt install ros-kinetic-gps-common```
 - amcl - ```sudo apt install ros-kinetic-amcl```
 - gmapping - ```sudo apt install ros-kinetic-gmapping```
+- sicktoolbox_fork - Install here: https://github.com/AtlasBuggy/sicktoolbox-fork
