@@ -15,7 +15,7 @@ void odom_callback(const geometry_msgs::Pose::ConstPtr& msg)
 	double new_y = msg->position.y;
 	double new_z = msg->position.z;
 	double siny_cosp = 2.0 * (msg->orientation.w * msg->orientation.z + msg->orientation.x * msg->orientation.y);
-	double cosy_cosp = 1.0 - 2.0 * (msg->orientation.y * msg->orientation.y + msg->orientation.z * msg->orientation.z);  
+	double cosy_cosp = 1.0 - 2.0 * (msg->orientation.y * msg->orientation.y + msg->orientation.z * msg->orientation.z);
 	double new_ori = atan2(siny_cosp, cosy_cosp);
 	buggy.update_pose(new_x, new_y, new_z, new_ori);
 }
@@ -33,6 +33,7 @@ int main(int argc, char **argv)
 	{
 		path.push_back(make_pair(x_cord[i], y_cord[i]));
 	}
+
 	buggy.load_path(path);
 	ros::init(argc, argv, "controller");
 	ros::NodeHandle n;
