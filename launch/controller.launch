@@ -1,0 +1,9 @@
+<launch>
+  <param name="use_sim_time" value="true"/>
+  <node pkg="tf2_ros" type="static_transform_publisher" name="laser_tf_broadcaster" args="0 0 0 0 0 0 1 base_link laser" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="imu_tf_broadcaster" args="0.1016 0.0762 0.095   0 0 0 1 base_link imu" />
+
+  <node name="velocity_calculator" pkg="wheel_vel" type="calc_vel.py" />
+  <node name="dead_reckoning" pkg="dead_reckoning" type="dead_reckoning.py" />
+  <node name="controller" pkg="controller" type="controller_node" output = "screen" />
+</launch>
