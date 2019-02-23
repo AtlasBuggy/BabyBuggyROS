@@ -19,6 +19,7 @@ def pose_callback(msg):
 
 def get_next_waypoint():
     global cur_pose, threshold
+    global waypoints, waypoint_ind
 
     if cur_pose == None:
         return None
@@ -29,7 +30,7 @@ def get_next_waypoint():
     wp_x = waypoints[waypoint_ind][0]
     wp_y = waypoints[waypoint_ind][1]
 
-    if dist(x_pose, wp_x, y_pose, wp_y) < threshold:
+    if waypoint_ind < len(waypoints)-1 and dist(x_pose, wp_x, y_pose, wp_y) < threshold:
         waypoint_ind = waypoint_ind + 1
         wp_x = waypoints[waypoint_ind][0]
         wp_y = waypoints[waypoint_ind][1]
