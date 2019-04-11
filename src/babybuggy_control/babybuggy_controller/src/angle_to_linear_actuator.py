@@ -5,18 +5,27 @@ from std_msgs.msg import UInt16, Int32, Float64
 
 cur_angle = None
 des_angle = None
+manual = False
 
 def angle_to_steering(ang):
-    len = math.tan(ang + 0.0515) * 13.716 + 9.433
-    cmd = int((len - 1.82609191)/0.01769129)
+    len = math.tan(ang + 0.0545) * 13 + 8.89
+    cmd = int((len - 0.725)/0.01775)
     return cmd
 
 def steering_angle_callback(msg):
     global des_angle
-    des_angle = msg.data
+    des_angle = -msg.data
+
+def ch3_callback(msg):
+    global manual
+
+    if msg.data < 1460:
+	manual = True
+    else:
+	manual = False
 
 def main():
-    global des_angle
+    global des_angle, manual
     # In ROS, nodes are uniquely named. If two nodes  with the same
     # name are launched, the previous one is kicked off. The
     # anonymous=True flag means that rospy will choose a unique
@@ -24,6 +33,7 @@ def main():
     # run simultaneously.
     rospy.init_node('manual_controller', anonymous=True)
     rospy.Subscriber("steering_angle", Float64, steering_angle_callback)
+    rospy.Subscriber("ch3", UInt16, ch3_callback)
     steering_pub = rospy.Publisher("steering", Int32, queue_size=10)
 
     # spin() simply keeps python from exiting until this node is stopped
@@ -36,7 +46,9 @@ def main():
         msg = Int32()
         msg.data = angle_to_steering(des_angle)
         print(msg.data)
-        steering_pub.publish(msg)
+
+	if not manual:
+	        steering_pub.publish(msg)
 
         rate.sleep()
 

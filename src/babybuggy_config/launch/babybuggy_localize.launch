@@ -1,7 +1,7 @@
 <launch>
     <!-- <arg name="map_path" value="hunt_circuit.yaml"/> -->
 
-    <node pkg="map_server" type="map_server" name="map_server" output="screen" args="$(find dead_reckoning)/maps/course_full_5.yaml"/>
+    <node pkg="map_server" type="map_server" name="map_server" output="screen" args="$(find dead_reckoning)/maps/course_full_3.yaml"/>
 
     <node pkg="amcl" type="amcl" name="amcl">
       <rosparam>

@@ -4,16 +4,19 @@ from std_msgs.msg import UInt16, Int32
 
 RIGHT = 2048
 LEFT = 4096
-CENTER = 470
+CENTER = 500
 STOP = 1500
 
 ch1_threshold = 1470
 ch1_val = None
 
+ch3_threshold = 1460
+ch3_val = None
+
 def get_steering_cmd():
     global ch1_val, ch1_threshold
 
-    if ch1_val == None:
+    if ch3_val == None or ch3_val > ch3_threshold or ch1_val == None:
         return None
 
     diff = ch1_val - ch1_threshold
@@ -24,11 +27,15 @@ def get_steering_cmd():
         else:
             return LEFT
     else:
-        return STOP
+        return CENTER
 
 def ch1_callback(msg):
     global ch1_val
     ch1_val = msg.data
+
+def ch3_callback(msg):
+    global ch3_val
+    ch3_val = msg.data
 
 def listener():
 
@@ -40,6 +47,7 @@ def listener():
     rospy.init_node('manual_controller', anonymous=True)
 
     rospy.Subscriber("ch1", UInt16, ch1_callback)
+    rospy.Subscriber("ch3", UInt16, ch3_callback)
     steering_pub = rospy.Publisher("steering", Int32, queue_size=10)
 
     # spin() simply keeps python from exiting until this node is stopped

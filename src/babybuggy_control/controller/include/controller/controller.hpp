@@ -7,6 +7,7 @@
 
 constexpr double LAD_COEFF = 10;
 constexpr double WHEEL_BASE = 0.5;
+constexpr double ORI_OFFSET = 0.0;
 
 using namespace std;
 
@@ -21,11 +22,14 @@ class Robot {
 		double pp_control();
 		double pid_control();
 		void load_path(deque<pair<double, double>> data);
+		void load_dr_path(deque<pair<double, double>> data);
 		void locate_on_map();
-		void update_pose(double new_x, double new_y, double new_z, double new_ori);
+		void amcl_update_pose(double new_x, double new_y, double new_z, double new_ori);
+		void dr_update_pose(double new_x, double new_y, double new_z, double new_ori);
 		void update_speed(double new_speed);
 		int index;
 		bool use_amcl;
+		bool is_manual;
 
 	private:
 		double x;
@@ -35,11 +39,13 @@ class Robot {
 		double speed;
 		double turn_angle;
 		deque<pair<double, double>> path;
+		deque<pair<double, double>> dr_path;
 	};
 
 	Robot::Robot(bool init)
 	{
 		use_amcl = init;
+		is_manual = true;
 		index = 0;
 	}
 
@@ -59,7 +65,7 @@ class Robot {
 			x = new_x;
 			y = new_y;
 			z = new_z;
-			ori = new_ori;
+			ori = new_ori + ORI_OFFSET;
 		}
 	}
 
@@ -73,17 +79,31 @@ class Robot {
 		path = data;
 	}
 
+	void Robot::load_dr_path(deque<pair<double, double>> data)
+	{
+		dr_path = data;
+	}
+
 	void Robot::locate_on_map()
 	{
+		deque<pair<double, double>> working_path;
+
+		if (!use_amcl) {
+			working_path = dr_path;
+		}
+		else {
+			working_path = path;
+		}
+
 		double dist, min_dist = -1;
 		deque<pair<double, double>>::iterator i;
-		for (i = path.begin(); i !=path.end(); ++i)
+		for (i = working_path.begin(); i != working_path.end(); ++i)
 		{
 			dist = distance(make_pair(x, y), *i);
 			if (min_dist == -1 || dist < min_dist)
 			{
 				min_dist = dist;
-				index = distance(path.begin(), i);
+				index = distance(working_path.begin(), i);
 			}
 		}
 	}
