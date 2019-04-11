@@ -19,11 +19,15 @@
         <param name="port" value="/dev/serial/by-id/usb-Adafruit_Adafruit_Metro_328_ADAOLANOp-if00-port0"/>
     </node>
 
+    <node pkg="rosserial_python" type="serial_node.py" name="rf_receiver" output="screen">
+        <param name="port" value="/dev/serial/by-id/usb-1a86_USB2.0-Serial-if00-port0"/>
+    </node>
+
     <!-- <node name="joystick" pkg="joy" type="joy_node">
       <param name="joy_node/dev" value="/dev/input/js0"/>
     </node> -->
 
-    <node name="controller" pkg="steering_controller" type="steering_controller_node"/>
+    <!-- <node name="controller" pkg="steering_controller" type="steering_controller_node"/> -->
 
     <node name="imu" type="bno055_arduino_bridge_node" pkg="bno055_arduino_bridge" required="true" output="screen">
         <param name="~serial_port" type="string" value="/dev/serial/by-id/usb-Silicon_Labs_CP2104_USB_to_UART_Bridge_Controller_00FEBA78-if00-port0"/>
@@ -34,9 +38,4 @@
         <param name="~serial_port" type="string" value="/dev/serial/by-id/usb-Silicon_Labs_CP2104_USB_to_UART_Bridge_Controller_00FEBA3D-if00-port0"/>
         <param name="~serial_baud" type="int" value="9600"/>
     </node>
-
-    <node pkg="rosbag" type="record" name="record" output="screen" required="true"
-        args="AdafruitGPS BNO055 BNO055_covariances GpsNavSat encoder1_raw encoder2_raw scan
-              --output-prefix=$(find babybuggy_config)/bags/sensors"/>
-         <!-- -x '/webcam/(.*)|/encoder_odom|/tf_static -->
 </launch>

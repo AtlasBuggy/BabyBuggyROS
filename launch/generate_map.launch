@@ -3,5 +3,4 @@
     <include file="$(find babybuggy_config)/launch/babybuggy_odom.launch"/>
     <include file="$(find babybuggy_config)/launch/babybuggy_gmapping.launch"/>
     <include file="$(find babybuggy_config)/launch/babybuggy_visualize.launch"/>
-    <node name="babybuggy_error_checker" pkg="babybuggy_error_checker" type="babybuggy_error_checker_node" output="screen" required="true"/>
 </launch>

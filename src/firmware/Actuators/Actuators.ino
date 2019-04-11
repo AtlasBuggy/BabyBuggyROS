@@ -10,21 +10,23 @@
 #include "DualVNH5019MotorShield.h"
 
 #define POT_PIN A2
-#define SERVO_PIN 3
+//#define SERVO_PIN 3
+
+#define KP 8
 
 DualVNH5019MotorShield md;
 ros::NodeHandle nh;
-int steering_requested_value = 400;
-int braking_requested_value = 0;
-int current_brake_value = 0;
+int steering_requested_value = 480;
+//int braking_requested_value = 0;
+//int current_brake_value = 0;
 
-Servo brake_servo;
+//Servo brake_servo;
 
 void steer(const std_msgs::Int32& msg){
     steering_requested_value = msg.data;
 }
 
-void set_brakes(const std_msgs::Int32& msg)
+/*void set_brakes(const std_msgs::Int32& msg)
 {
     braking_requested_value = (int)msg.data;
     if (braking_requested_value < 0) {
@@ -33,10 +35,10 @@ void set_brakes(const std_msgs::Int32& msg)
     if (braking_requested_value > 180) {
         braking_requested_value = 180;
     }
-}
+}*/
 
 ros::Subscriber<std_msgs::Int32> steeringSub("steering", steer);
-ros::Subscriber<std_msgs::Int32> brakeSub("braking", set_brakes);
+//ros::Subscriber<std_msgs::Int32> brakeSub("braking", set_brakes);
 
 void turn_left() {
     md.setM1Speed(400);
@@ -50,14 +52,23 @@ void stop_motor(){
     md.setM1Speed(0);
 }
 
+int set_speed(int err){
+  int s = KP * err;
+
+  if (s > 400) s = 400;
+  if (s < -400) s = -400;
+
+  md.setM1Speed(-s);
+}
+
 void setup() {
     md.init();
     nh.initNode();
     nh.subscribe(steeringSub);
-    nh.subscribe(brakeSub);
+    //nh.subscribe(brakeSub);
 
-    pinMode(POT_PIN, INPUT);
-    brake_servo.attach(SERVO_PIN);
+    //pinMode(POT_PIN, INPUT);
+    //brake_servo.attach(SERVO_PIN);
 }
 
 void loop(){
@@ -66,7 +77,7 @@ void loop(){
     {
         int diff = steering_requested_value - analogRead(POT_PIN);
 
-        if (abs(diff) > 5) {
+        /*if (abs(diff) > 15) {
             if (diff > 0) {
                 turn_right();
             }
@@ -76,7 +87,17 @@ void loop(){
         }
         else {
             stop_motor();
+        }*/
+        
+        if (abs(diff) > 5){
+          set_speed(diff);
         }
+        else{
+          stop_motor();
+        }
+
+        
+        
     }
 
     else if (steering_requested_value == 1500){
@@ -96,10 +117,10 @@ void loop(){
         }
     }
 
-    if (braking_requested_value != current_brake_value) {
+    /*if (braking_requested_value != current_brake_value) {
         current_brake_value = braking_requested_value;
         brake_servo.write(braking_requested_value);
-    }
+    }*/
 
     delay(10);
     nh.spinOnce();

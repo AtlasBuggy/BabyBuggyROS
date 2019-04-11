@@ -1,31 +1,7 @@
 <launch>
-  <arg name="map_path" value="$(find dead_reckoning)/maps/course_full_1.yaml"/>
-
-  <!-- Provide necessary component transforms -->
-  <node pkg="tf2_ros" type="static_transform_publisher" name="laser_tf_broadcaster" args="0 0 0 0 0 0 1 base_link laser" />
-  <node pkg="tf2_ros" type="static_transform_publisher" name="imu_tf_broadcaster" args="0.1016 0.0762 0.095   0 0 0 1 base_link imu" />
-
-  <!-- Provide state estimation -->
-  <node name="dead_reckoning" pkg="dead_reckoning" type="dead_reckoning.py" />
-
-  <!-- Publish map and AMCL localizer -->
-  <node pkg="map_server" type="map_server" name="map_server" output="screen" args="$(arg map_path)"/>
-  <node pkg="amcl" type="amcl" name="amcl" output="screen">
-      <param name="use_map_topic" value="true"/>
-      <!-- <param name="update_min_d" value="0.1" /> -->
-      <!-- <param name="update_min_a" value="0.1" /> -->
-      <!-- <param name="kld_err" value="0.10" /> -->
-      <!-- <param name="max_particles" value="1000" /> -->
-  </node>
-
-  <!-- Provide waypoints to controller -->
-  <node pkg="babybuggy_controller" type="waypoint_feeder.py" name="feeder" output="screen">
-      <param name="filename" value="$(find babybuggy_controller)/waypoints/waypoints.txt"/>
-      <param name="threshold" value="100"/>
-  </node>
-
-  <!-- Use waypoints from feeder to calculate steering angle -->
-  <node pkg="babybuggy_controller" type="pure_pursuit_controller.py" name="controller" output="screen">
-      <param name="KP" value="1.0"/>
-  </node>
+  <include file="$(find babybuggy_config)/launch/babybuggy_config.launch"/>
+  <!-- <include file="$(find babybuggy_config)/launch/babybuggy_sensors.launch"/> -->
+  <include file="$(find babybuggy_config)/launch/babybuggy_odom.launch"/>
+  <include file="$(find babybuggy_config)/launch/babybuggy_localize.launch"/>
+  <include file="$(find babybuggy_config)/launch/babybuggy_control.launch"/>
 </launch>

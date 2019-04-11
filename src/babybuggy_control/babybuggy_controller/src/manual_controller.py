@@ -2,9 +2,9 @@
 import rospy
 from std_msgs.msg import UInt16, Int32
 
-LEFT = 2048
-RIGHT = 4096
-CENTER = 365
+RIGHT = 2048
+LEFT = 4096
+CENTER = 470
 STOP = 1500
 
 ch1_threshold = 1470
@@ -24,7 +24,7 @@ def get_steering_cmd():
         else:
             return LEFT
     else:
-        return CENTER
+        return STOP
 
 def ch1_callback(msg):
     global ch1_val
