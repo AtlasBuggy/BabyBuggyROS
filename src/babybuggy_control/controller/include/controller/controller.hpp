@@ -28,6 +28,7 @@ class Robot {
 		void dr_update_pose(double new_x, double new_y, double new_z, double new_ori);
 		void update_speed(double new_speed);
 		int index;
+		int target_index;
 		bool use_amcl;
 		bool is_manual;
 
@@ -88,22 +89,22 @@ class Robot {
 	{
 		deque<pair<double, double>> working_path;
 
-		if (!use_amcl) {
+		/*if (!use_amcl) {
 			working_path = dr_path;
 		}
 		else {
 			working_path = path;
-		}
+		}*/
 
 		double dist, min_dist = -1;
 		deque<pair<double, double>>::iterator i;
-		for (i = working_path.begin(); i != working_path.end(); ++i)
+		for (i = path.begin(); i != path.end(); ++i)
 		{
 			dist = distance(make_pair(x, y), *i);
 			if (min_dist == -1 || dist < min_dist)
 			{
 				min_dist = dist;
-				index = distance(working_path.begin(), i);
+				index = distance(path.begin(), i);
 			}
 		}
 	}
@@ -119,6 +120,7 @@ class Robot {
 			look_ahead_distance -= distance(path[target], path[(target+1)%path.size()]);
 			target++;
 		}
+		target_index = target;
 		double global_x_diff = path[target].first - x;
 		double global_y_diff = path[target].second - y;
 		double dist_diff = distance(path[target], make_pair(x, y));
@@ -126,6 +128,12 @@ class Robot {
 		double pos_deg = global_deg - ori;
 		double pos_y_diff = dist_diff * cos(pos_deg);
 		double pos_x_diff = dist_diff * sin(pos_deg);
+		
+		double robot_y = cos(ori)*global_y_diff - sin(ori)*global_x_diff;
+		double robot_x = cos(ori)*global_x_diff + sin(ori)*global_y_diff;
+
+		double new_steer_angle = atan(2 * WHEEL_BASE*robot_y / dist_diff);
+
 		double steer_angle = atan(2 * WHEEL_BASE*pos_x_diff / dist_diff);
-		return steer_angle;
+		return new_steer_angle;
 	}

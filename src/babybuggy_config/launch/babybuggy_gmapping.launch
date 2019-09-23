@@ -6,14 +6,14 @@
           base_frame: base_link
           map_frame: map
 
-          map_update_interval: 30 # Publish new map (seconds)
+          map_update_interval: 20 # Publish new map (seconds)
           throttle_scans: 1  # don't skip any scans
 
           maxRange: 32.76 # Max sensor value
           maxUrange: 30.0 # Usable region of the sensor
           particles: 100
 
-          #minimumScore: 20
+          minimumScore: 110
 
           # Update frequencies
           # linearUpdate: 0.1
@@ -22,25 +22,23 @@
           # resampleThreshold: 0.5
 
           # course parameters (0.005, 0.01, 0.007, 0.01)
-          # test parameters (0.005, 0.005, 0.015, 0.025)
-          # hunt parameters (0.05,0.01,0.05,0.07)
           srr: 0.005
           srt: 0.01
           str: 0.007
-          stt: 0.02
+          stt: 0.01
 
           # Initial Map Size
           xmin: -25.0
           ymin: -25.0
           xmax: 25.0
           ymax: 25.0
-          delta: 0.25
+          delta: 0.05
 
           # All default
-          sigma: 0.1
-          #kernelSize: 1
-          lstep: 0
-          astep: 0
+          #sigma: 0.05
+          # kernelSize: 1
+          #lstep: 0
+          #astep: 0
           # iterations: 5
           # lsigma: 0.075
           # ogain: 3.0

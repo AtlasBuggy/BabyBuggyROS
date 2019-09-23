@@ -1,6 +1,7 @@
 #include "../include/controller/controller.hpp"
 #include "ros/ros.h"
 #include "geometry_msgs/PoseWithCovarianceStamped.h"
+#include "geometry_msgs/PointStamped.h"
 #include "nav_msgs/Odometry.h"
 #include "std_msgs/Float64.h"
 #include "std_msgs/UInt16.h"
@@ -75,6 +76,7 @@ int main(int argc, char **argv)
 	ros::NodeHandle n;
 
 	ros::Publisher steering_pub = n.advertise<std_msgs::Float64>("steering_angle", 10);
+	ros::Publisher target_pose_pub = n.advertise<geometry_msgs::PointStamped>("target_point", 10);
 
 	ros::Subscriber amcl_sub = n.subscribe<geometry_msgs::PoseWithCovarianceStamped>("amcl_pose", 10, amcl_callback);
 	ros::Subscriber dead_reckoning_sub = n.subscribe<nav_msgs::Odometry>("odom", 10, dead_reckoning_callback);
@@ -89,13 +91,24 @@ int main(int argc, char **argv)
 		if (buggy.index >= 9) {
 			buggy.use_amcl = true;
 		}
+
+		if (buggy.is_manual) {
+			ROS_INFO("MANUAL");
+		}
+		else {
+			ROS_INFO("AUTONOMOUS");
+		}
+
+		geometry_msgs::PointStamped target_msg;
+		target_msg.header.frame_id = "map";
+		target_msg.point.x = x_cord[buggy.target_index];
+		target_msg.point.y = y_cord[buggy.target_index];
+		target_pose_pub.publish(target_msg);
+
 		std_msgs::Float64 angle_msg;
 		double angle = buggy.pp_control();
 		angle_msg.data = angle;
-
-		if (buggy.is_manual == false){
-			steering_pub.publish(angle_msg);
-		}
+		steering_pub.publish(angle_msg);
 
 		ros::spinOnce();
 

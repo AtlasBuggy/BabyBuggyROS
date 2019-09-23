@@ -1,7 +1,7 @@
 <launch>
   <include file="$(find babybuggy_config)/launch/babybuggy_config.launch"/>
-  <!-- <include file="$(find babybuggy_config)/launch/babybuggy_sensors.launch"/> -->
+  <!--<include file="$(find babybuggy_config)/launch/babybuggy_sensors.launch"/>-->
   <include file="$(find babybuggy_config)/launch/babybuggy_odom.launch"/>
   <include file="$(find babybuggy_config)/launch/babybuggy_localize.launch"/>
-  <include file="$(find babybuggy_config)/launch/babybuggy_visualize.launch"/>
+  <node pkg="controller" type="controller_node" name="controller" output="screen"/>
 </launch>

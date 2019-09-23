@@ -85,7 +85,6 @@ def main():
         left_diff = left_enc - prev_left_enc
 
         avg_diff = (right_diff + left_diff)/2.0
-        avg_diff = avg_diff * 1.15
 
         prev_left_enc = left_enc
         prev_right_enc = right_enc

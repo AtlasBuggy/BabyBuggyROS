@@ -1,5 +1,5 @@
 <launch>
-    <!-- <arg name="map_path" value="hunt_circuit.yaml"/> -->
+    <!-- <arg name="map_path" value="course_full_3.yaml"/> -->
 
     <node pkg="map_server" type="map_server" name="map_server" output="screen" args="$(find dead_reckoning)/maps/course_full_3.yaml"/>
 
@@ -11,7 +11,7 @@
         kld_z: 0.99
         update_min_d: 0.05
         # update_min_a: 0.5236
-        resample_interval: 5
+        resample_interval: 2
         transform_tolerance: 0.1
         recovery_alpha_slow: 0.0
         recovery_alpha_fast: 0.0
@@ -39,11 +39,11 @@
         laser_model_type: likelihood_field
 
         odom_model_type: diff-corrected
-        odom_alpha1: 0.01
-        odom_alpha2: 0.007
+        odom_alpha1: 0.004
+        odom_alpha2: 0.004
         odom_alpha3: 0.005
-        odom_alpha4: 0.01
-        odom_alpha5: 0.01
+        odom_alpha4: 0.007
+        odom_alpha5: 0.2
         odom_frame_id: odom
         base_frame_id: base_link
         global_frame_id: map
