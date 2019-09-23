@@ -1,6 +1,0 @@
-<launch>
-  <node name="checkpoint_loader" pkg="steering_controller" type="checkpoint_loader_node" output="screen">
-    <param name="~checkpoint_dir" type="string" value="/home/oshadha/Documents/Projects/Atlas/Repositories/BabyBuggyROS/checkpoints"/>
-    <param name="~filename" type="string" value="makerspace1.txt"/>
-  </node>
-</launch>
