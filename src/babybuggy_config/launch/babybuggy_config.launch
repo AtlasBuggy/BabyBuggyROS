@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
-    <node pkg="tf2_ros" type="static_transform_publisher" name="laser_tf_broadcaster" args="0 0 0   1 0 0 0 base_link laser" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="laser_tf_broadcaster" args="0 0 0   0 0 0 1 base_link laser" />
     <node pkg="tf2_ros" type="static_transform_publisher" name="gps_tf_broadcaster" args="0 0 0   0 0 0 1 base_link gps" />
     <node pkg="tf2_ros" type="static_transform_publisher" name="imu_tf_broadcaster" args="0.1016 0.0762 0.095   0 0 0 1 base_link imu" />
     <node pkg="tf2_ros" type="static_transform_publisher" name="enc_tf_broadcaster" args="0 0 0   1 0 0 0 base_link encoder" />

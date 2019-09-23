@@ -1,0 +1,6 @@
+<launch>
+    <node pkg="rosbag" type="record" name="record" output="screen" required="true"
+        args="AdafruitGPS BNO055 BNO055_covariances GpsNavSat encoder1_raw encoder2_raw scan
+              --output-prefix=$(find babybuggy_config)/bags/sensors"/>
+         <!-- -x '/webcam/(.*)|/encoder_odom|/tf_static -->
+</launch>

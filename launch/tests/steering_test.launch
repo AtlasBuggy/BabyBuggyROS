@@ -1,0 +1,5 @@
+<launch>
+    <include file="$(find babybuggy_config)/launch/babybuggy_config.launch"/>
+    <include file="$(find babybuggy_config)/launch/babybuggy_sensors.launch"/>
+    <node pkg="babybuggy_controller" type="angle_to_linear_actuator.py" name="angle_to_linac" output="screen"/>
+</launch>

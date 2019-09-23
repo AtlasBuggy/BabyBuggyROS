@@ -1,6 +1,5 @@
 <launch>
     <include file="$(find babybuggy_config)/launch/babybuggy_config.launch"/>
     <include file="$(find babybuggy_config)/launch/babybuggy_sensors.launch"/>
-    <include file="$(find babybuggy_config)/launch/babybuggy_record.launch"/>
     <node pkg="babybuggy_controller" type="manual_controller.py" name="manual_controller" output="screen"/>
 </launch>
