@@ -3,5 +3,5 @@
   <!--<include file="$(find babybuggy_config)/launch/babybuggy_sensors.launch"/>-->
   <include file="$(find babybuggy_config)/launch/babybuggy_odom.launch"/>
   <include file="$(find babybuggy_config)/launch/babybuggy_localize.launch"/>
-  <node pkg="controller" type="controller_node" name="controller" output="screen"/>
+  <node pkg="babybuggy_autonomous_control" type="babybuggy_automonous_control_node" name="controller" output="screen"/>
 </launch>

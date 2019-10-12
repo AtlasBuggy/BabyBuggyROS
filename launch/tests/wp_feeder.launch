@@ -1,6 +1,0 @@
-<launch>
-  <node pkg="babybuggy_controller" type="waypoint_feeder.py" name="feeder" output="screen">
-      <param name="filename" value="$(find babybuggy_controller)/waypoints/waypoints.txt"/>
-      <param name="threshold" value="100"/>
-  </node>
-</launch>

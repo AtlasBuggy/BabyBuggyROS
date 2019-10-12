@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
-    <node pkg="controller" type="controller_node" name="controller" output="screen"/>
+    <node pkg="babybuggy_autonomous_control" type="babybuggy_automonous_control_node" name="controller" output="screen"/>
 </launch>
