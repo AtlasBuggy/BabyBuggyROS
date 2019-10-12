@@ -5,6 +5,6 @@
   <include file="$(find babybuggy_config)/launch/babybuggy_localize.launch"/>
   <include file="$(find babybuggy_config)/launch/babybuggy_control.launch"/>
   <include file="$(find babybuggy_config)/launch/babybuggy_record.launch"/>
-  <node pkg="babybuggy_controller" type="manual_controller.py" name="manual_controller" output="screen"/>
-  <node pkg="babybuggy_controller" type="angle_to_linear_actuator.py" name="angle_to_linac" output="screen"/>
+  <node pkg="babybuggy_manual_control" type="manual_controller.py" name="manual_controller" output="screen"/>
+  <node pkg="babybuggy_autonomous_control" type="angle_to_linear_actuator.py" name="angle_to_linac" output="screen"/>
 </launch>

@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>babybuggy_controller</name>
+  <name>babybuggy_manual_control</name>
   <version>0.0.0</version>
-  <description>The babybuggy_controller package</description>
+  <description>The babybuggy_manual_control package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
