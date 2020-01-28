@@ -84,6 +84,8 @@ int main(int argc, char **argv)
 	ros::Publisher steering_pub = n.advertise<std_msgs::Float64>("steering_angle", 10);
 	ros::Publisher target_pose_pub = n.advertise<geometry_msgs::PointStamped>("target_point", 10);
 
+	buggy.vision_direction = 2; /* initialize in case the first read happens
+								   before the callback is called */
 	ros::Subscriber amcl_sub = n.subscribe<geometry_msgs::PoseWithCovarianceStamped>("amcl_pose", 10, amcl_callback);
 	ros::Subscriber dead_reckoning_sub = n.subscribe<nav_msgs::Odometry>("odom", 10, dead_reckoning_callback);
 	ros::Subscriber speed_sub = n.subscribe<std_msgs::Float64>("wheel_vel", 10, speed_callback);
