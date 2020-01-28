@@ -13,6 +13,7 @@ def get_direction(width, height, image):
     # -1 = left
     # 0 = straight
     # 1 = right
+    # 2 = could not find direction
     leftCount = 0
     rightCount = 0
     for i in range(height):
@@ -30,7 +31,7 @@ def get_direction(width, height, image):
     print("ratio of road: " + str(roadRatio))
 
     if not (ROAD_RATIO - ROAD_TOL <= roadRatio <= ROAD_RATIO + ROAD_TOL):
-        return -2
+        return 2
 
     lrRatio  =float(rightCount) / float(leftCount)
     print("left: " + str(leftCount) + "\nright: " + str(rightCount) +

@@ -1,4 +1,10 @@
 <launch>
-	<include file="$(find realsense2_camera)/launch/rs_camera.launch"/>
-    <node pkg="babybuggy_vision" type="vision.py" name="vision"/>
+    <include file="$(find realsense2_camera)/launch/rs_camera.launch"/>
+    <node pkg="vision" type="vision.py" name="vision" output="screen"/>
+    <node pkg="ros_deep_learning" type="segnet" name="segnet">
+        <remap from="segnet/image_in" to="image_publisher/image_raw"/>
+        <rosparam>
+             model_name: fcn-resnet18-cityscapes-1024x512
+        </rosparam>
+    </node>
 </launch>
