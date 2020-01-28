@@ -173,6 +173,7 @@ target/
 .Trashes
 ehthumbs.db
 Thumbs.db
+tags:
 
 
 
@@ -207,7 +208,7 @@ xcuserdata/
 
 # Backup files #
 ################
-.swp
+*.swp
 \#*
 
 # lookup files#

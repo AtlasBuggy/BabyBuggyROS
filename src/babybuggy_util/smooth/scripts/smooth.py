@@ -24,7 +24,7 @@ def smoother():
     rospy.init_node('smoother', anonymous=True)
     if (isFloat):
         rospy.Subscriber(channel, Float64, smooth_callback)
-    else
+    else:
         rospy.Subscriber(channel, Int64, smooth_callback)
     rospy.spin()
 

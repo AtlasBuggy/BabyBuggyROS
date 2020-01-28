@@ -29,6 +29,7 @@ class Robot {
 		void update_speed(double new_speed);
 		int index;
 		int target_index;
+		int vision_direction;
 		bool use_amcl;
 		bool is_manual;
 
@@ -128,7 +129,7 @@ class Robot {
 		double pos_deg = global_deg - ori;
 		double pos_y_diff = dist_diff * cos(pos_deg);
 		double pos_x_diff = dist_diff * sin(pos_deg);
-		
+
 		double robot_y = cos(ori)*global_y_diff - sin(ori)*global_x_diff;
 		double robot_x = cos(ori)*global_x_diff + sin(ori)*global_y_diff;
 

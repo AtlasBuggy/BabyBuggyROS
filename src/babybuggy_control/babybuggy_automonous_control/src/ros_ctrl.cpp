@@ -5,6 +5,7 @@
 #include "nav_msgs/Odometry.h"
 #include "std_msgs/Float64.h"
 #include "std_msgs/UInt16.h"
+#include "std_msgs/UInt8.h"
 
 using namespace std;
 
@@ -55,6 +56,11 @@ void ch3_callback(const std_msgs::UInt16::ConstPtr& msg)
 	}
 }
 
+void vision_callback(const std_msgs::UInt8::ConstPtr& msg)
+{
+	buggy.vision_direction = msg->data;
+}
+
 int main(int argc, char **argv)
 {
 	deque<pair<double, double>> path;
@@ -67,7 +73,7 @@ int main(int argc, char **argv)
 	for (int i = 0; i < dr_x_cord.size(); i++)
 	{
 		dr_path.push_back(make_pair(dr_x_cord[i], dr_y_cord[i]));
-	}	
+	}
 
 	buggy.load_path(path);
 	buggy.load_dr_path(dr_path);
@@ -82,6 +88,7 @@ int main(int argc, char **argv)
 	ros::Subscriber dead_reckoning_sub = n.subscribe<nav_msgs::Odometry>("odom", 10, dead_reckoning_callback);
 	ros::Subscriber speed_sub = n.subscribe<std_msgs::Float64>("wheel_vel", 10, speed_callback);
 	ros::Subscriber ch3_sub = n.subscribe<std_msgs::UInt16>("ch3", 10, ch3_callback);
+	ros::Subscriber vision_sub = n.subscribe<std_msgs::UInt8>("vision/steering_angle", 10, vision_callback);
 
 	ros::Rate loop_rate(10);
 
@@ -108,7 +115,16 @@ int main(int argc, char **argv)
 		std_msgs::Float64 angle_msg;
 		double angle = buggy.pp_control();
 		angle_msg.data = angle;
-		steering_pub.publish(angle_msg);
+
+		/* if the vision couldn't find the road, defer to the waypoints */
+		if (buggy.vision_direction == 2) {
+			steering_pub.publish(angle_msg);
+		} else {
+			int scalingFactor = 20; // arbitrary
+			std_msgs::UInt8 dir;
+			dir.data = buggy.vision_direction * scalingFactor;
+			steering_pub.publish(dir);
+		}
 
 		ros::spinOnce();
 
