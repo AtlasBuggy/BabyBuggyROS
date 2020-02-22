@@ -4,7 +4,7 @@ from std_msgs.msg import UInt16, Int32
 
 RIGHT = 2048
 LEFT = 4096
-CENTER = 500
+CENTER = 540
 STOP = 1500
 
 ch1_threshold = 1470
