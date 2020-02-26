@@ -2,12 +2,12 @@
 #include "SkyTraqNmeaParser.h"
 #include "Queue.h"
 
-#define _DEBUGGER_   0
+#define _GPS_DEBUGGER_   0
 
 D64 gps_vals[3];
 int safe_gps = 0;
 
-#if (_DEBUGGER_)
+#if (_GPS_DEBUGGER_)
 DataQueue<String> q(100);
 #endif
 
@@ -31,7 +31,7 @@ bool init_gps() {
   digitalWrite(2, LOW);
   
   //NS-HP output NMEA message in 115200 bps
-  Serial2.begin(_BAUD_RATE_);
+  Serial2.begin(BAUD_RATE);
   //attachInterrupt(0, serialInterrupt_GPS, CHANGE);
 
   gps_vals[2] = -999;
@@ -39,19 +39,29 @@ bool init_gps() {
   return true;
 }
 
+volatile bool inEvent = false;
+
 void serialEvent2(){
-  const U08 *buf = parser.GetParsingBuffer();
-  int incomingByte = Serial2.read();
-  //Serial.print((char) incomingByte);
-  SkyTraqNmeaParser::ParsingType type = parser.Encode(incomingByte);
-#if (_DEBUGGER_)
+#if (_GPS_DEBUGGER_)
 /*
+  const U08 *buf = parser.GetParsingBuffer();
   for(int i = 0; i < sizeof(buf)/sizeof(buf[0]); i++) {
     Serial.print("" + ((char *)buf)[i]);
   }
   q.enqueue("msg: " + type);
   */
 #endif
+  while(inEvent) {}
+  inEvent = true;
+  int incomingByte;
+  while(!Serial2.available());
+  //while(Serial2.available()) {
+    incomingByte = Serial2.read();
+    //Serial.print("enter\n");
+    SkyTraqNmeaParser::ParsingType type = parser.Encode(incomingByte);
+    //Serial.print("exit\n");
+  //}
+  inEvent = false;
 }
 
 bool GnssUpdated(U32 f, const char* buf, SkyTraqNmeaParser::ParsingType type){
@@ -77,12 +87,14 @@ bool update_globals(U32 f, const char* buf, SkyTraqNmeaParser::ParsingType type)
     switch((mask & f))
     {
     case SkyTraqNmeaParser::UpdateTime:
+      //Serial.print("updating GPS\n");
       gps_vals[0] = gnss.GetLatitude();
       gps_vals[1] = gnss.GetLongitude();
       gps_vals[2] = gnss.GetAltitudeInMeter();
       safe_gps = 3;
+      //Serial.print("updated GPS\n");
 
-#if (_DEBUGGER_)
+#if (_GPS_DEBUGGER_)
       q.enqueue(String((int) gnss.GetNumberOfSv()));
 #endif
       break;
@@ -113,7 +125,8 @@ void write_gps_vals() {
     Serial.print(gps_vals[i],4);
     Serial.print("\t");
   }
-#if (_DEBUGGER_)
+  
+#if (_GPS_DEBUGGER_)
   Serial.print("d[");
   while(!q.isEmpty()) {
     Serial.print(q.dequeue());

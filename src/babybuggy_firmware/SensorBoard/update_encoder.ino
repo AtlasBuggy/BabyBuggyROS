@@ -1,12 +1,12 @@
 
-#define _NUM_ENCODERS_        2
+#define NUM_ENCODERS        2
 
-unsigned encoder_interrupt[_NUM_ENCODERS_] = {2, 3};
-unsigned encoder_input[_NUM_ENCODERS_] = {4, 5};
-int encoder_vals[_NUM_ENCODERS_];
+unsigned encoder_interrupt[NUM_ENCODERS] = {2, 3};
+unsigned encoder_input[NUM_ENCODERS] = {4, 5};
+int encoder_vals[NUM_ENCODERS];
 
 void init_encoder() {
-  for(int i = 0; i < _NUM_ENCODERS_; i++) {
+  for(int i = 0; i < NUM_ENCODERS; i++) {
     interruptSetup(i);
     pinMode(encoder_input[i], INPUT);
   }
@@ -35,15 +35,17 @@ void update_encoder_1() {
 }
 
 bool update_encoder(int encoder) {
-  if(encoder >= _NUM_ENCODERS_) return false;
+  if(encoder >= NUM_ENCODERS) return false;
+  
   int val = digitalRead(encoder_input[encoder]);
   if(val == HIGH) encoder_vals[encoder] = encoder_vals[encoder] + 1;
   else encoder_vals[encoder] = encoder_vals[encoder] - 1;
+  
   return true;
 }
 
 void write_encoder_vals() {
-  for(int i = 0; i < _NUM_ENCODERS_; i++) {
+  for(int i = 0; i < NUM_ENCODERS; i++) {
     Serial.print(encoder_vals[i]);
     Serial.print("\t");
   }
