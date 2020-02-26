@@ -64,8 +64,8 @@ def parse_sensors(ser):
 
         # read the line from the arduino, parse the data for each message
         line = ser.readline()
-
-	rospy.loginfo(line)
+        ser.write("received\n".encode())
+        rospy.loginfo(line)
 
         data = line.split('\t')
 
