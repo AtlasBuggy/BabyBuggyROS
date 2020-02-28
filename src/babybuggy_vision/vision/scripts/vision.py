@@ -7,7 +7,7 @@ from std_msgs.msg import UInt32, UInt8
 ROAD_NUM = 3        # the classification number of the road in segnet
 STRAIGHT_TOL = 0.1  # the tolerance for what is considered straight on
 ROAD_TOL = 0.1      # the tolerance for deciding if on the road
-ROAD_RATIO = 0.4    # ratio of road to other semantic objects
+ROAD_RATIO = 0.3    # ratio of road to other semantic objects
 
 def get_direction(width, height, image):
     # -1 = left
@@ -28,14 +28,14 @@ def get_direction(width, height, image):
                 rightCount += 1
 
     roadRatio = float(leftCount + rightCount) / float(width * height)
-    print("ratio of road: " + str(roadRatio))
+    # print("ratio of road: " + str(roadRatio))
 
     if not (ROAD_RATIO - ROAD_TOL <= roadRatio <= ROAD_RATIO + ROAD_TOL):
         return 2
 
-    lrRatio  =float(rightCount) / float(leftCount)
-    print("left: " + str(leftCount) + "\nright: " + str(rightCount) +
-            "\nratio: " + str(lrRatio))
+    lrRatio = float(rightCount) / float(leftCount)
+    # print("left: " + str(leftCount) + "\nright: " + str(rightCount) +
+    #         "\nratio: " + str(lrRatio))
 
     if (1 - STRAIGHT_TOL <= lrRatio <= 1 + STRAIGHT_TOL):
         return 0
@@ -52,7 +52,7 @@ def segment_callback(data, pub):
     image = list(bytearray(data.data))
 
     direction = get_direction(w, h, image)
-    print("direction: " + str(direction) + "\n")
+    # print("direction: " + str(direction) + "\n")
     pub.publish(direction)
 
 def listen_for_segmentation():

@@ -7,7 +7,7 @@ import numpy as np
 
 import tf2_ros
 
-from std_msgs.msg import Float64, Int64
+from std_msgs.msg import Float64, Int64, Int32
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import TransformStamped
 from sensor_msgs.msg import Imu
@@ -36,7 +36,7 @@ state = [0,0,0]
 
 def enc1_callback(msg):
     global right_enc
-    right_enc = msg.data
+    right_enc = float(msg.data)
 
 def enc2_callback(msg):
     global left_enc
@@ -62,31 +62,36 @@ def main():
 
     rospy.init_node('dead_reckoning', anonymous=True)
 
-    rospy.Subscriber("encoder1_raw", Int64, enc1_callback) # right_vel
-    rospy.Subscriber("encoder2_raw", Int64, enc2_callback) # left_vel
-    rospy.Subscriber("BNO055", Imu, imu_callback)
+    rospy.Subscriber("enc1", Int32, enc1_callback) # right_vel
+    # rospy.Subscriber("encoder2_raw", Int64, enc2_callback) # left_vel
+    rospy.Subscriber("IMU", Imu, imu_callback)
 
     odom_pub = rospy.Publisher("odom", Odometry, queue_size=10)
 
     rate = rospy.Rate(10) # 10hz
 
     while not rospy.is_shutdown():
-        if right_enc == None or left_enc == None:
+        # print("before check")
+        if right_enc == None:
             continue
+        # print("got here")
+        # if right_enc == None or left_enc == None:
+        #     continue
 
         if imu_orientation == None or imu_quaternion == None:
             continue
 
-        if prev_right_enc == None or prev_left_enc == None:
+        if prev_right_enc == None and prev_left_enc == None:
             prev_right_enc = right_enc
-            prev_left_enc = left_enc
+            # prev_left_enc = left_enc
 
         right_diff = right_enc - prev_right_enc
-        left_diff = left_enc - prev_left_enc
+        # left_diff = left_enc - prev_left_enc
 
-        avg_diff = (right_diff + left_diff)/2.0
+        # avg_diff = (right_diff + left_diff)/2.0
+        avg_diff = right_diff
 
-        prev_left_enc = left_enc
+        # prev_left_enc = left_enc
         prev_right_enc = right_enc
 
         roll = imu_orientation[0]
