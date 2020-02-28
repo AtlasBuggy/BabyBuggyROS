@@ -2,9 +2,10 @@
 #define BAUD_RATE   115200
 
 #define _RUN_IMU_         1
-#define _RUN_GPS_         0
+#define _RUN_GPS_         1
 #define _RUN_ENCODER_     1
 #define _RUN_RF_          0
+#define _TEST_GPS_        1
 
 #define _FLUSH_BUFFER_    1
 

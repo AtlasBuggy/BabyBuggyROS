@@ -1,3 +1,6 @@
+#if (_TEST_GPS_)
+#else
+
 #include "SoftwareSerial.h"
 #include "SkyTraqNmeaParser.h"
 #define _GPS_DEBUGGER_   0
@@ -134,3 +137,5 @@ void write_gps_vals() {
   Serial.print("]/d\t");
 #endif
 }
+
+#endif
