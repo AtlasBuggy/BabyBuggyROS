@@ -4,7 +4,7 @@
 #include "Venus838.hpp"
 
 long gps_vals[6];
-char printableValue[10];
+char printableValue[16];
 
 #if (_GPS_DEBUGGER_)
 #include "Queue.h"
