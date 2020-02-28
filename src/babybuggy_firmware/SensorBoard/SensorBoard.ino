@@ -2,7 +2,7 @@
 #define BAUD_RATE   115200
 
 #define _RUN_IMU_         1
-#define _RUN_GPS_         1
+#define _RUN_GPS_         0
 #define _RUN_ENCODER_     1
 #define _RUN_RF_          0
 
@@ -37,7 +37,7 @@ void setup() {
 void sendMessage() {
   if(_RUN_IMU_) write_imu_vals();
   if(_RUN_GPS_) write_gps_vals();
-  //Serial.print("0.0\t0.0\t0.0\t");
+  if(!_RUN_GPS_) Serial.print("0.0\t0.0\t0.0\t");
   if(_RUN_ENCODER_) write_encoder_vals();
   if(_RUN_RF_) write_rf_vals();
 
