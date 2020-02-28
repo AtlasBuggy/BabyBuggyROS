@@ -1,13 +1,12 @@
 #include "SoftwareSerial.h"
 #include "SkyTraqNmeaParser.h"
-#include "Queue.h"
-
 #define _GPS_DEBUGGER_   0
 
 D64 gps_vals[3];
 int safe_gps = 0;
 
 #if (_GPS_DEBUGGER_)
+#include "Queue.h"
 DataQueue<String> q(100);
 #endif
 
