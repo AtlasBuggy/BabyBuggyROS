@@ -36,11 +36,11 @@ state = [0,0,0]
 
 def enc1_callback(msg):
     global right_enc
-    right_enc = float(msg.data)
+    right_enc = -float(msg.data)
 
 def enc2_callback(msg):
     global left_enc
-    left_enc = msg.data
+    left_enc = -msg.data
 
 def imu_callback(msg):
     global imu_orientation, imu_quaternion
