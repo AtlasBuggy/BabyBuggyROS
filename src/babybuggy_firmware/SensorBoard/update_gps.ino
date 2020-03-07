@@ -124,7 +124,7 @@ bool update_globals(U32 f, const char* buf, SkyTraqNmeaParser::ParsingType type)
 
 void write_gps_vals() {
   for(int i = 0; i < 3; i++) {
-    Serial.print(gps_vals[i],4);
+    Serial.print(gps_vals[i], 4);
     Serial.print("\t");
   }
   

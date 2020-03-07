@@ -7,7 +7,7 @@
 #define _RUN_RF_          0
 #define _TEST_GPS_        1
 
-#define _FLUSH_BUFFER_    1
+#define _FLUSH_BUFFER_    0
 
 //Hertz (must divide 1000 evenly)
 #define MESSAGE_FREQUENCY 10

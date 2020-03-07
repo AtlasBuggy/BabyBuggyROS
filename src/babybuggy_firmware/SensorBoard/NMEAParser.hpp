@@ -58,7 +58,7 @@ public:
     inline unsigned long positionAge() {return millis() - _last_position_fix;}
     inline unsigned char getNSatsVisible() {return _numsats_visible;}
     inline unsigned long getSNR() {return _snr_avg;}
-
+    inline void getSentence(char s[NMEASENTENCE_MAXLENGTH]) { s = _sentence; }
 private:
 
     int _termcmp(const char *str1, const char *str2);

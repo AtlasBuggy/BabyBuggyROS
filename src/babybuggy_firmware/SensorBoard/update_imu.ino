@@ -31,7 +31,8 @@ bool isSafe_IMU() {
 
 void init_imu() {
   /* Initialise the sensor */
-  if(!bno.begin(bno.OPERATION_MODE_COMPASS)) {    // DEFAULT = OPERATION_MODE_NDOF
+  if(!bno.begin()) {    // DEFAULT = OPERATION_MODE_NDOF
+    //bno.OPERATION_MODE_COMPASS
     /* There was a problem detecting the BNO055 ... check your connections */
     Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
     while(1);

@@ -57,7 +57,7 @@ bool NMEAParser::encode(char c)
             {
                 new_data = _log_sentence();
             }
-            _char_offset = 0;
+            //_char_offset = 0;
             _sentence[0] = 0;
         }
     }
