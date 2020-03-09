@@ -1,22 +1,19 @@
-#define SENTENCE_SIZE       100
+#define SENTENCE_SIZE           120
 
-#define TOKEN_SIZE          15
-#define TOKEN_DELIMIT       ','
-#define CHECKSUM_DELIMIT    '*'
+#define TOKEN_SIZE              15
+#define TOKEN_DELIMIT           ','
+#define CHECKSUM_DELIMIT        '*'
 
-#define ERR_NONE            0
-#define ERR_CHECKSUM        1
-#define ERR_UNKNOWN_MSG     2
-#define ERR_TOKEN_OVERFLOW  3
-#define ERR_MSG_MALFORM     4
+#define ERR_NONE                000
+#define ERR_CHECKSUM            100
+#define ERR_CHECKSUM_MALFORM    110
+#define ERR_TOKEN_OVERFLOW      200
+#define ERR_MSG_MALFORM         300
+#define ERR_UNKNOWN_MSG         310
 
 class NMEA_Parser {
     public:
-        typedef bool (NMEA_Parser::*eval)(char tokens[TOKEN_SIZE][SENTENCE_SIZE], int numTokens);
-
         NMEA_Parser();
-        char sentence[SENTENCE_SIZE];
-        int flag;
 
         bool encode(char c);
 
@@ -80,13 +77,24 @@ class NMEA_Parser {
         inline int getLocalMinute() { return local_min; }
         
     private:
-        unsigned error_flag = ERR_NONE;
-        int writePos = 0;
+        typedef bool (NMEA_Parser::*eval)(char tokens[TOKEN_SIZE][SENTENCE_SIZE], int numTokens);
+
+        unsigned error_flag;
+        char sentence[SENTENCE_SIZE];
+        char tokens[TOKEN_SIZE][SENTENCE_SIZE]; 
+        int writePos;
 
         const char GPGGA_TERM[7] = "$GPGGA";
         const char GPGLL_TERM[7] = "$GPGLL";
+
         const char GPGSA_TERM[7] = "$GPGSA";
+        const char GLGSA_TERM[7] = "$GLGSA";
+        const char BDGSA_TERM[7] = "$BDGSA";
+
         const char GPGSV_TERM[7] = "$GPGSV";
+        const char GLGSV_TERM[7] = "$GLGSV";
+        const char BDGSV_TERM[7] = "$BDGSV";
+
         const char GPRMC_TERM[7] = "$GPRMC";
         const char GPVTG_TERM[7] = "$GPVTG";
         const char GPZDA_TERM[7] = "$GPZDA";
@@ -149,9 +157,8 @@ class NMEA_Parser {
         int local_hour;
         int local_min;
 
-
         bool isSentenceFinished();
-        bool explodeSentence(char d, char sentence[], int *numTokens);
+        bool explodePhrase(char d, char sentence[], int *numTokens);
         bool validChecksum(char msg[], int checksum);
 
         // evaluators
@@ -163,10 +170,9 @@ class NMEA_Parser {
         bool evalRMC(char tokens[TOKEN_SIZE][SENTENCE_SIZE], int numTokens);
         bool evalVTG(char tokens[TOKEN_SIZE][SENTENCE_SIZE], int numTokens);
         bool evalZDA(char tokens[TOKEN_SIZE][SENTENCE_SIZE], int numTokens);
-        inline bool evalNone(char tokens[TOKEN_SIZE][SENTENCE_SIZE], int numTokens) { return !(error_flag = ERR_UNKNOWN_MSG); }
+        bool evalNone(char tokens[TOKEN_SIZE][SENTENCE_SIZE], int numTokens);
 
         // utility functions
-        void copyCharArray(char tokens[][SENTENCE_SIZE], char token[SENTENCE_SIZE], int num, int j);
         int cmpCharArray(const char M[], const char N[], const int m, const int n);
         int hexToInt(char hex);
         int decToInt(char dec);
