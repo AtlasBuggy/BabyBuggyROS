@@ -2,7 +2,7 @@
  * NMEA Parser
  *    Justin Brick
  *
- * 2020.03.07
+ * 2020.03.09
  *
  * Parses NMEA Messages 
  */
@@ -11,7 +11,7 @@
 
 NMEA_Parser::NMEA_Parser() {
     writePos = 0;
-    error_flag = ERR_NONE
+    error_flag = ERR_NONE;
 }
 
 /*
@@ -331,7 +331,7 @@ bool NMEA_Parser::evalZDA(char tokens[TOKEN_SIZE][SENTENCE_SIZE], int numTokens)
     This is the default evaluator if the message type could not be
     determined.
 */
-bool evalNone(char tokens[TOKEN_SIZE][SENTENCE_SIZE], int numTokens) {
+bool NMEA_Parser::evalNone(char tokens[TOKEN_SIZE][SENTENCE_SIZE], int numTokens) {
     error_flag = ERR_UNKNOWN_MSG;
     return false;
 }

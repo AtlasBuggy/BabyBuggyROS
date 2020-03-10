@@ -3,7 +3,7 @@
 
 unsigned encoder_interrupt[NUM_ENCODERS] = {2, 3};
 unsigned encoder_input[NUM_ENCODERS] = {4, 5};
-int encoder_vals[NUM_ENCODERS];
+long int encoder_vals[NUM_ENCODERS];
 
 void init_encoder() {
   for(int i = 0; i < NUM_ENCODERS; i++) {
