@@ -1,7 +1,6 @@
 #include "nmea_parser.hpp"
 
-#define GPS_PRECISION     8
-#define GPS_DEBUG_LIGHT   0
+#define GPS_PRECISION       8
 
 double gps_vals[3];
 
@@ -16,8 +15,6 @@ bool init_gps() {
   
   return true;
 }
-
-volatile bool inEvent = false;
 
 void serialEvent2() {
   bool newData = false;
