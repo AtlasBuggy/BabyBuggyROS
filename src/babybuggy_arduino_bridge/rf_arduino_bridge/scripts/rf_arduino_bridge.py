@@ -39,7 +39,7 @@ if __name__ == '__main__':
     # initialize the serial connection to the arduino
     ser = serial.Serial()
     ser.baudrate = 115200
-    ser.port = "/dev/serial/by-id/usb-1a86_USB2.0-Serial-if00-port0"
+    ser.port = "usb-Adafruit_Adafruit_Metro_328_ADAOLANOp-if00-port0"
     ser.timeout = 1
     ser.open()
 
