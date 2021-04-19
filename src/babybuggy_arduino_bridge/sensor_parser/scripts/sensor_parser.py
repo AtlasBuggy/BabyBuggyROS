@@ -61,33 +61,32 @@ def parse_sensors(ser):
     rospy.init_node('sensor_info', anonymous=True)
     rate = rospy.Rate(10)
     while not rospy.is_shutdown():
+        try:
+            # read the line from the arduino, parse the data for each message
+            line = ser.readline()
+            # ser.write("received\n".encode())
+            rospy.loginfo(line)
 
-        # read the line from the arduino, parse the data for each message
-        line = ser.readline()
-        ser.write("received\n".encode())
-        rospy.loginfo(line)
+            data = line.split('\t')
 
-        data = line.split('\t')
+            # if the full data didn't come though, ignore
+            if len(data) != number_params:
+                continue
 
-        # if the full data didn't come though, ignore
-        if len(data) != number_params:
-            continue
+            # parse the strings into ros messages
+            imu_msg = parse_IMU(data[IMU_start : IMU_start + IMU_length])
+            gps_msg = parse_GPS(data[GPS_start : GPS_start + GPS_length])
+            enc_msgs = parse_encoders(data[encoder_start : encoder_start + encoder_length])
+            
+            # publish on all the topics
+            imu_pub.publish(imu_msg)
+            gps_pub.publish(gps_msg)
+            enc1_pub.publish(enc_msgs[0])
+            enc2_pub.publish(enc_msgs[1])
 
-        # print("test")
-
-        # parse the strings into ros messages
-        imu_msg = parse_IMU(data[IMU_start : IMU_start + IMU_length])
-        gps_msg = parse_GPS(data[GPS_start : GPS_start + GPS_length])
-        enc_msgs = parse_encoders(data[encoder_start : encoder_start + encoder_length])
-
-
-        # publish on all the topics
-        imu_pub.publish(imu_msg)
-        gps_pub.publish(gps_msg)
-        enc1_pub.publish(enc_msgs[0])
-        enc2_pub.publish(enc_msgs[1])
-
-        rate.sleep()
+            rate.sleep()
+        except:
+            pass
 
 if __name__ == '__main__':
     # initialize the serial connection to the arduino
