@@ -1,6 +1,6 @@
 /*
  * NMEA Parser
- *    Justin Brick
+ *    Thea Brick
  *
  * 2020.03.09
  *
