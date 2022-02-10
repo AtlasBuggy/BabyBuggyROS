@@ -98,6 +98,7 @@ def main():
         pitch = imu_orientation[1]
         yaw = imu_orientation[2]
 
+        #Calculate total rotation in all directions 
         yawMatrix = np.matrix([
                     [math.cos(yaw), -math.sin(yaw), 0],
                     [math.sin(yaw), math.cos(yaw), 0],

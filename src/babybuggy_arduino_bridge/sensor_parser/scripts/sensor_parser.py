@@ -75,12 +75,27 @@ def parse_sensors(ser):
 
             # parse the strings into ros messages
             imu_msg = parse_IMU(data[IMU_start : IMU_start + IMU_length])
-            gps_msg = parse_GPS(data[GPS_start : GPS_start + GPS_length])
+
+
+            #Try to read the GPS data, but if can't abort so it doesn't break the whole system
+            #(Possible issue to resolve later)
+            readGPS = False;
+            try:
+                gps_msg = parse_GPS(data[GPS_start : GPS_start + GPS_length])
+                readGPS = True;
+            except:
+                #Error reading GPS data
+                
+            
+            
             enc_msgs = parse_encoders(data[encoder_start : encoder_start + encoder_length])
             
             # publish on all the topics
             imu_pub.publish(imu_msg)
-            gps_pub.publish(gps_msg)
+
+            if readGPS:
+                gps_pub.publish(gps_msg)
+            
             enc1_pub.publish(enc_msgs[0])
             enc2_pub.publish(enc_msgs[1])
 

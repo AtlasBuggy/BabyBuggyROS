@@ -66,6 +66,7 @@ GPSArduinoBridge::GPSArduinoBridge(ros::NodeHandle* nodehandle) : nh(*nodehandle
 }
 
 
+//Wait for packet, and if can't then exit
 void GPSArduinoBridge::waitForPacket(const string packet)
 {
 	ros::Time begin = ros::Time::now();
@@ -111,6 +112,8 @@ int GPSArduinoBridge::run()
 
 	ros::Rate clock_rate(15);  // 15 Hz
 
+
+	
 	while (ros::ok())
 	{
 		ros::spinOnce();

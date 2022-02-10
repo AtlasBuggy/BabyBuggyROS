@@ -18,6 +18,7 @@ deque<double> dr_x_cord = {0, 16.5513, 33.1027, 49.6540, 66.2054, 82.7567, 99.30
 
 deque<double> dr_y_cord = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
+//Update the position info of Buggy w/ AMCL
 void amcl_callback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg)
 {
 	double new_x = msg->pose.pose.position.x;
@@ -29,6 +30,8 @@ void amcl_callback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg
 	buggy.amcl_update_pose(new_x, new_y, new_z, new_ori);
 }
 
+
+//Update the position info of Buggy w/ Dead Reckoning
 void dead_reckoning_callback(const nav_msgs::Odometry::ConstPtr& msg)
 {
 	double dr_x = msg->pose.pose.position.x;
@@ -61,6 +64,8 @@ void vision_callback(const std_msgs::UInt8::ConstPtr& msg)
 	buggy.vision_direction = msg->data;
 }
 
+
+//Main control for the Buggy
 int main(int argc, char **argv)
 {
 	deque<pair<double, double>> path;
@@ -75,6 +80,8 @@ int main(int argc, char **argv)
 		dr_path.push_back(make_pair(dr_x_cord[i], dr_y_cord[i]));
 	}
 
+
+	//Load path data
 	buggy.load_path(path);
 	buggy.load_dr_path(dr_path);
 
@@ -94,6 +101,8 @@ int main(int argc, char **argv)
 
 	ros::Rate loop_rate(10);
 
+
+	//Continually update and publish new info
 	int count = 0;
 	while (ros::ok())
 	{

@@ -36,6 +36,7 @@ EncoderArduinoBridge::EncoderArduinoBridge(ros::NodeHandle* nodehandle):nh(*node
 }
 
 
+//Wait for packet, and if can't then exit
 void EncoderArduinoBridge::waitForPacket(const string packet)
 {
     ros::Time begin = ros::Time::now();
@@ -117,6 +118,8 @@ int EncoderArduinoBridge::run()
     return 0;
 }
 
+
+//Decode Int64 message 
 int64_t EncoderArduinoBridge::parseSegmentedInt64(string s) {
     size_t pos = s.find(INT64_SEGMENT_DELIMITER);
     if (pos == string::npos) {
@@ -129,6 +132,8 @@ int64_t EncoderArduinoBridge::parseSegmentedInt64(string s) {
     return (part1 << 32) | part2;
 }
 
+
+//Choose which encoder to use based on the message
 void EncoderArduinoBridge::parseToken(string token) {
     switch (token.at(0)) {
         case 't': ROS_DEBUG("encoder arduino time: %s", token.substr(1).c_str()); break;
