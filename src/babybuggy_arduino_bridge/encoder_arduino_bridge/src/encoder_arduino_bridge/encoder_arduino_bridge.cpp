@@ -42,6 +42,7 @@ void EncoderArduinoBridge::waitForPacket(const string packet)
     ros::Time begin = ros::Time::now();
     ros::Duration timeout = ros::Duration(15.0);
 
+    //Attempt until timeout
     while ((ros::Time::now() - begin) < timeout)
     {
         if (serial_ref.available()) {
@@ -126,6 +127,9 @@ int64_t EncoderArduinoBridge::parseSegmentedInt64(string s) {
         ROS_WARN("Couldn't find int 64 delimiting character in encoder message: '%s'", s.c_str());
         return 0;
     }
+
+
+    //Parse the string and convert it into long
     long long part1 = string_to_int64(s.substr(0, pos));
     long long part2 = string_to_int64(s.substr(pos + 1));
 
@@ -138,6 +142,8 @@ void EncoderArduinoBridge::parseToken(string token) {
     switch (token.at(0)) {
         case 't': ROS_DEBUG("encoder arduino time: %s", token.substr(1).c_str()); break;
 
+
+        //Read toeken data and then publish
         #ifdef USE_ENCODER1
         case 'a':
             enc1_msg.data = parseSegmentedInt64(token.substr(1));

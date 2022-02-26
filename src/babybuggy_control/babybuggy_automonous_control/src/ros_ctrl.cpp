@@ -45,12 +45,14 @@ void dead_reckoning_callback(const nav_msgs::Odometry::ConstPtr& msg)
 
 void speed_callback(const std_msgs::Float64::ConstPtr& msg)
 {
+	//Update speed
 	double new_speed = msg->data;
 	buggy.update_speed(new_speed);
 }
 
 void ch3_callback(const std_msgs::UInt16::ConstPtr& msg)
 {
+	//Switch between manual and automatic
 	if (msg->data > 1460) {
 		buggy.is_manual = false;
 	}
@@ -117,6 +119,7 @@ int main(int argc, char **argv)
 			ROS_INFO("AUTONOMOUS");
 		}
 
+		//Target data
 		geometry_msgs::PointStamped target_msg;
 		target_msg.header.frame_id = "map";
 		target_msg.point.x = x_cord[buggy.target_index];
