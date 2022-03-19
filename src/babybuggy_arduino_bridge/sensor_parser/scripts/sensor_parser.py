@@ -44,6 +44,7 @@ def parse_IMU(data):
 
 
 def parse_sensors(ser):
+    #Define parameters
     number_params = 10
     GPS_start = 4
     IMU_start = 0

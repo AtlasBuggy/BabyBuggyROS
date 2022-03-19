@@ -8,6 +8,8 @@ const string Bno055ArduinoBridge::CHILD_FRAME_ID = "base_link";
 const string Bno055ArduinoBridge::NODE_NAME = "bno055_arduino_bridge";
 const string Bno055ArduinoBridge::PACKET_END = "\n";
 
+
+//Messages and delimiters
 const string Bno055ArduinoBridge::HELLO_MESSAGE = "hello!" + PACKET_END;
 const string Bno055ArduinoBridge::READY_MESSAGE = "ready!" + PACKET_END;
 const string Bno055ArduinoBridge::START_COMMAND = "g" + PACKET_END;
@@ -41,6 +43,8 @@ Bno055ArduinoBridge::Bno055ArduinoBridge(ros::NodeHandle* nodehandle):nh(*nodeha
     enc2_pub = nh.advertise<std_msgs::Int64>("/encoder2_raw", 100);
     #endif
 
+
+    //Initialize parameters
     initial_euler_roll = 0.0;
     initial_euler_pitch = 0.0;
     initial_euler_yaw = 0.0;
@@ -78,6 +82,8 @@ void Bno055ArduinoBridge::waitForPacket(const string packet)
     ros::Time begin = ros::Time::now();
     ros::Duration timeout = ros::Duration(15.0);
 
+
+    //Wait and try to read serial buffer
     while ((ros::Time::now() - begin) < timeout)
     {
         if (serial_ref.available()) {
@@ -111,6 +117,7 @@ void Bno055ArduinoBridge::eulerToQuat(sensor_msgs::Imu &imu_msg, float roll, flo
 
 
 int64_t Bno055ArduinoBridge::parseSegmentedInt64(string s) {
+    //Decode Int64 from string
     size_t pos = s.find(INT64_SEGMENT_DELIMITER);
     if (pos == string::npos) {
         ROS_WARN("Couldn't find int 64 delimiting character in encoder message: '%s'", s.c_str());

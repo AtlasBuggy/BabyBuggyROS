@@ -56,6 +56,7 @@ def segment_callback(data, pub):
     pub.publish(direction)
 
 def listen_for_segmentation():
+    #Get segmentation of road
     pub = rospy.Publisher('vision/steering_angle', UInt8, queue_size=10)
     rospy.init_node('vision', anonymous=True)
     callback_lambda = lambda x: segment_callback(x, pub)
